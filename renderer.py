@@ -81,13 +81,13 @@ def generate_chart(nested_data, output_path="chart.png"):
     bridge_events = df[df['keto_snack'].notnull()]
 
     # 6. PLOT GENERATION
-    plt.rcParams.update({'font.size': 22, 'font.family': 'sans-serif'})
-    # Ultra-wide panoramic view to prevent temporal squishing (3:1 aspect ratio)
-    fig, ax1 = plt.subplots(figsize=(60, 20), dpi=300) 
-    plt.subplots_adjust(right=0.75, left=0.08, top=0.88, bottom=0.12)
+    plt.rcParams.update({'font.size': 32, 'font.family': 'sans-serif'})
+    # Ultra-wide panoramic view to prevent temporal squishing (Max res)
+    fig, ax1 = plt.subplots(figsize=(120, 40), dpi=300) 
+    plt.subplots_adjust(right=0.85, left=0.05, top=0.92, bottom=0.08)
 
     # Primary Axis: Glucose
-    ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=28)
+    ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=40)
     ax1.fill_between(sim_dates, band_low, band_high, color='red', alpha=0.08, label='Circadian Healthy Band')
     ax1.plot(sim_dates, smooth_glucose, color='#d62728', lw=10, alpha=0.2)
     ax1.scatter(df.dropna(subset=['glucose'])['timestamp'], df.dropna(subset=['glucose'])['glucose'], color='#d62728', s=400, edgecolors='black', label='Measured Glucose', zorder=5)
