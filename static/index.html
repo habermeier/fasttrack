@@ -45,7 +45,32 @@
             width: 100%;
             max-width: 450px;
             margin-bottom: 30px;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .btn-icon {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon:active {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.95);
         }
 
         .logo {
@@ -272,7 +297,10 @@
 
     <header>
         <div class="logo">FastTrack</div>
-        <div class="datetime" id="current-time">Feb 7, 2026 • 20:17</div>
+        <div class="header-actions">
+            <div class="datetime" id="current-time">Feb 7, 2026 • 20:17</div>
+            <button class="btn-icon" id="btn-graph-top" title="View Graph">📈</button>
+        </div>
     </header>
 
     <main class="dashboard-card">
@@ -506,6 +534,9 @@
             window.location.href = "/meal";
         });
         document.getElementById('btn-graph').addEventListener('click', () => {
+            window.location.href = "/graph";
+        });
+        document.getElementById('btn-graph-top').addEventListener('click', () => {
             window.location.href = "/graph";
         });
 

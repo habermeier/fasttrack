@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>FastTrack | Metabolic Graph</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +31,8 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
+            overflow: hidden;
+            /* Header stays, main scrolls */
         }
 
         header {
@@ -69,19 +70,24 @@
 
         .graph-container {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-            overflow: hidden;
+            padding: 0;
+            overflow: auto;
+            /* Allow dragging/scrolling */
+            display: block;
+            /* Support vertical and horizontal overflow */
+            background: #000;
+            -webkit-overflow-scrolling: touch;
+            /* Smooth mobile scrolling */
         }
 
         #chart-img {
-            max-width: 100%;
-            max-height: calc(100vh - 80px);
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease;
+            width: 2000px;
+            /* High resolution ground truth width */
+            max-width: none;
+            height: auto;
+            border-radius: 0;
+            box-shadow: none;
+            display: block;
         }
 
         .controls {
