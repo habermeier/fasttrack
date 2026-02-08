@@ -345,6 +345,11 @@
                     <span>✓</span> Submit
                 </button>
             </div>
+
+            <button type="button" class="btn btn-graph" id="btn-graph"
+                style="margin-top: 15px; width: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: #0c3e1e;">
+                <span>📈</span> View Analytics Graph
+            </button>
         </form>
 
         <div id="status" class="status-msg"></div>
@@ -499,6 +504,9 @@
         document.getElementById('btn-submit').addEventListener('click', () => submitEntry(false));
         document.getElementById('btn-meal').addEventListener('click', () => {
             window.location.href = "/meal";
+        });
+        document.getElementById('btn-graph').addEventListener('click', () => {
+            window.location.href = "/graph";
         });
 
         init();

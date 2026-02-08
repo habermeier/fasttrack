@@ -159,6 +159,10 @@ async def read_index():
 async def read_meal():
     return FileResponse("static/meal.html")
 
+@app.get("/graph")
+async def read_graph():
+    return FileResponse("static/graph.html")
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/api/chart")
