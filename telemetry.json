@@ -338,5 +338,16 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-02-08T04:48:58.766Z",
+        "entries": [
+            {
+                "id": "f686fdcb-d312-4d80-8032-9ae634469460",
+                "key": "keto_snack",
+                "value": "1 bag of steamed broccoli and a bit of kimchi",
+                "simulated": false
+            }
+        ]
     }
 ]
