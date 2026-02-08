@@ -81,13 +81,14 @@ def generate_chart(nested_data, output_path="chart.png"):
     bridge_events = df[df['keto_snack'].notnull()]
 
     # 6. PLOT GENERATION
-    plt.rcParams.update({'font.size': 40, 'font.family': 'sans-serif'})
-    # Extreme Ultra-wide panoramic view (2.5:1 ratio) to ensure temporal spacing
-    fig, ax1 = plt.subplots(figsize=(150, 60), dpi=300) 
-    plt.subplots_adjust(right=0.9, left=0.05, top=0.9, bottom=0.1)
+    plt.rcParams.update({'font.size': 28, 'font.family': 'sans-serif'})
+    # Target 16,000px width (Max hardware texture size)
+    # 50 inches * 320 DPI = 16,000 pixels
+    fig, ax1 = plt.subplots(figsize=(50, 18.75), dpi=320) 
+    plt.subplots_adjust(right=0.88, left=0.06, top=0.9, bottom=0.1)
 
     # Primary Axis: Glucose
-    ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=48)
+    ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=36)
     ax1.fill_between(sim_dates, band_low, band_high, color='red', alpha=0.08, label='Circadian Healthy Band')
     ax1.plot(sim_dates, smooth_glucose, color='#d62728', lw=10, alpha=0.2)
     ax1.scatter(df.dropna(subset=['glucose'])['timestamp'], df.dropna(subset=['glucose'])['glucose'], color='#d62728', s=400, edgecolors='black', label='Measured Glucose', zorder=5)
@@ -131,6 +132,6 @@ def generate_chart(nested_data, output_path="chart.png"):
         ax1.axvline(x=row['timestamp'], color='lightgreen', lw=4, alpha=0.6, ls=':')
         ax1.text(row['timestamp'], 158, row['keto_snack'], rotation=90, verticalalignment='top', fontsize=12, fontweight='bold')
 
-    plt.title("Master-View v28: FastTrack Dashboard Analytics", fontsize=64, fontweight='bold', pad=150)
-    plt.savefig(output_path, dpi=300) 
+    plt.title("Master-View v28: FastTrack Dashboard Analytics", fontsize=60, fontweight='bold', pad=120)
+    plt.savefig(output_path, dpi=320) 
     plt.close()

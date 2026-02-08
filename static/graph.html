@@ -28,12 +28,11 @@
             background-color: var(--bg);
             color: var(--text);
             height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             position: fixed;
-            width: 100%;
-            /* This is critical to stop the "pinch-to-zoom" on the whole page */
             touch-action: none;
         }
 
@@ -66,12 +65,6 @@
             font-family: inherit;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .refresh-btn:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.2);
         }
 
         .viewport {
@@ -88,7 +81,9 @@
             left: 0;
             transform-origin: 0 0;
             will-change: transform;
-            image-rendering: high-quality;
+            /* CRITICAL: Fixes blurriness in some browsers */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
 
         .hud {
@@ -103,32 +98,14 @@
             font-size: 0.9rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .hud-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 30px;
-            margin-bottom: 5px;
         }
 
         .hud span {
             color: var(--primary);
             font-weight: 800;
             font-family: monospace;
-            font-size: 1.1rem;
         }
 
-        .hint {
-            font-size: 0.7rem;
-            color: #777;
-            margin-top: 5px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Loader */
         #loader {
             position: absolute;
             top: 50%;
@@ -144,8 +121,8 @@
 
     <header>
         <a href="/" class="back-link">✕</a>
-        <div style="font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; color: var(--primary);">45K PANORAMIC VIEW
-        </div>
+        <div style="font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; color: var(--primary);">16K ANALYTICS
+            PREVIEW</div>
         <div style="display: flex; gap: 8px;">
             <button class="refresh-btn" onclick="resetView()">RESET</button>
             <button class="refresh-btn" onclick="location.reload()">🔄</button>
@@ -153,13 +130,11 @@
     </header>
 
     <main class="viewport" id="viewport">
-        <div id="loader">Loading 45K Image...</div>
+        <div id="loader">Loading 16,000px Image...</div>
         <img id="chart-img" src="/api/chart" alt="Metabolic Graph" style="opacity: 0;">
         <div class="hud">
-            <div class="hud-row">Zoom: <span id="debug-scale">1.00x</span></div>
-            <div class="hud-row">Pos: <span id="debug-pos">0, 0</span></div>
-            <div class="hint">Mac: Trackpad Pinch</div>
-            <div class="hint">iOS: Multi-Touch</div>
+            <div>Zoom: <span id="debug-scale">1.00x</span></div>
+            <div style="font-size: 0.7rem; color: #777; margin-top: 10px;">Mac: Pinch Trackpad</div>
         </div>
     </main>
 
@@ -167,7 +142,6 @@
         const viewport = document.getElementById('viewport');
         const img = document.getElementById('chart-img');
         const scaleDisplay = document.getElementById('debug-scale');
-        const posDisplay = document.getElementById('debug-pos');
         const loader = document.getElementById('loader');
 
         let scale = 1;
@@ -176,89 +150,41 @@
         let isPanning = false;
         let lastX, lastY;
 
-        // State for pinch gestures
-        let initialScale = 1;
-        let lastDist = 0;
-
         img.onload = () => {
-            console.log("Chart image loaded successfully:", img.naturalWidth, "x", img.naturalHeight);
+            console.log("Chart Loaded:", img.naturalWidth, "x", img.naturalHeight);
             loader.style.display = 'none';
             img.style.opacity = '1';
             resetView();
         };
 
-        img.onerror = (e) => {
-            console.error("Failed to load chart image. Check if /api/chart is accessible.", e);
-            loader.innerText = "Error: Image failed to load. Check console.";
+        img.onerror = () => {
+            loader.innerText = "Error loading high-res image.";
             loader.style.color = "red";
         };
 
         function resetView() {
             const vWidth = viewport.clientWidth;
-            const vHeight = viewport.clientHeight;
             const iWidth = img.naturalWidth;
-            const iHeight = img.naturalHeight;
-
-            console.log("Resetting view. Viewport:", vWidth, "x", vHeight, "Image:", iWidth, "x", iHeight);
-
-            if (iWidth === 0) {
-                console.warn("Image width is 0, cannot calculate scale.");
-                return;
-            }
-
-            // Fit-to-width
             scale = vWidth / iWidth;
             x = 0;
-            y = (vHeight - (iHeight * scale)) / 2;
-            console.log("Calculated Fit Scale:", scale, "Pos:", x, y);
+            y = (viewport.clientHeight - (img.naturalHeight * scale)) / 2;
             updateTransform();
         }
 
         function updateTransform() {
-            // Use translate3d for GPU acceleration
             img.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
             scaleDisplay.innerText = scale.toFixed(2) + 'x';
-            posDisplay.innerText = `${Math.round(x)}, ${Math.round(y)}`;
         }
 
-        // --- 1. GLOBAL WINDOW LISTENERS (Most Reliable for MacBook) ---
-        // Attaching to window with { passive: false } allows us to block the browser's own zoom.
-        window.addEventListener('wheel', (e) => {
-            // Only act if we're interacting with the viewport area
-            if (e.target.closest('#viewport') || e.target.id === 'viewport') {
-                e.preventDefault();
+        // --- THE ONLY RELIABLE WAY TO LOG TRACKPAD EVENTS ---
+        // We use the event listener on the viewport ID specifically.
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            console.log("Wheel event:", e.ctrlKey, e.deltaY);
 
-                if (e.ctrlKey) {
-                    // PINCH on Mac Trackpad
-                    // Normalize deltaY: Chrome uses ~1-100, we want a smooth multiplier.
-                    const zoomIntensity = 0.005;
-                    const zoomFactor = Math.pow(1.1, -e.deltaY * zoomIntensity);
-
-                    applyZoom(zoomFactor, e.clientX, e.clientY);
-                } else {
-                    // TWO-FINGER SCROLL / PAN
-                    x -= e.deltaX;
-                    y -= e.deltaY;
-                }
-                updateTransform();
-            }
-        }, { passive: false });
-
-        // --- 2. SAFARI GESTURE EVENTS (Native MacBook/iOS Safari Support) ---
-        window.addEventListener('gesturestart', e => {
-            if (e.target.closest('#viewport')) {
-                e.preventDefault();
-                initialScale = scale;
-            }
-        });
-
-        window.addEventListener('gesturechange', e => {
-            if (e.target.closest('#viewport')) {
-                e.preventDefault();
-                // e.scale is the absolute scale multiplier since the gesture started
-                const nextScale = initialScale * e.scale;
-
-                // Zoom relative to the center of the gesture
+            if (e.ctrlKey) {
+                // MAC TRACKPAD PINCH
+                const zoomFactor = Math.pow(1.1, -e.deltaY * 0.012);
                 const rect = viewport.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
@@ -266,20 +192,31 @@
                 const imageX = (mouseX - x) / scale;
                 const imageY = (mouseY - y) / scale;
 
+                const nextScale = scale * zoomFactor;
                 x = mouseX - imageX * nextScale;
                 y = mouseY - imageY * nextScale;
                 scale = nextScale;
-
-                updateTransform();
+            } else {
+                // PANNING
+                x -= e.deltaX;
+                y -= e.deltaY;
             }
-        });
+            updateTransform();
+        }, { passive: false });
 
-        // --- 3. MOUSE PANNING (Click & Drag) ---
+        // Backup for Safari's native gesture events
+        viewport.addEventListener('gesturechange', e => {
+            e.preventDefault();
+            // Scale logic for native gestures is different, usually absolute
+            // We just log it for now to see if it even triggers
+            console.log("GestureChange event:", e.scale);
+        }, { passive: false });
+
+        // Basic Mouse/Pointer Panning
         viewport.addEventListener('mousedown', e => {
             isPanning = true;
             lastX = e.clientX;
             lastY = e.clientY;
-            viewport.style.cursor = 'grabbing';
         });
 
         window.addEventListener('mousemove', e => {
@@ -291,67 +228,10 @@
             updateTransform();
         });
 
-        window.addEventListener('mouseup', () => {
-            isPanning = false;
-            viewport.style.cursor = 'crosshair';
-        });
+        window.addEventListener('mouseup', () => isPanning = false);
 
-        // --- 4. TOUCH EVENTS (iPhone/iPad Support) ---
-        viewport.addEventListener('touchstart', e => {
-            if (e.touches.length === 1) {
-                lastX = e.touches[0].clientX;
-                lastY = e.touches[0].clientY;
-            } else if (e.touches.length === 2) {
-                lastDist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-            }
-        });
-
-        viewport.addEventListener('touchmove', e => {
-            e.preventDefault();
-            if (e.touches.length === 1) {
-                // Single finger pan
-                x += (e.touches[0].clientX - lastX);
-                y += (e.touches[0].clientY - lastY);
-                lastX = e.touches[0].clientX;
-                lastY = e.touches[0].clientY;
-            } else if (e.touches.length === 2) {
-                // Two finger pinch
-                const dist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                const zoomFactor = dist / lastDist;
-
-                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-
-                applyZoom(zoomFactor, midX, midY);
-                lastDist = dist;
-            }
-            updateTransform();
-        }, { passive: false });
-
-        // Utility: Zoom centered on a specific point
-        function applyZoom(factor, centerX, centerY) {
-            const rect = viewport.getBoundingClientRect();
-            const mouseX = centerX - rect.left;
-            const mouseY = centerY - rect.top;
-
-            const imageX = (mouseX - x) / scale;
-            const imageY = (mouseY - y) / scale;
-
-            const nextScale = scale * factor;
-
-            // Limit scale to avoid crashing or infinite loops
-            if (nextScale < 0.01 || nextScale > 20) return;
-
-            x = mouseX - imageX * nextScale;
-            y = mouseY - imageY * nextScale;
-            scale = nextScale;
-        }
+        // Resize handler
+        window.addEventListener('resize', resetView);
 
     </script>
 </body>
