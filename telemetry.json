@@ -349,46 +349,5 @@
                 "simulated": false
             }
         ]
-    },
-    {
-        "timestamp": "2026-02-08T04:49:41.426Z",
-        "entries": [
-            {
-                "id": "317e1913-ae20-4e29-a59f-fab1093f4674",
-                "key": "ketones",
-                "value": 9,
-                "simulated": false
-            },
-            {
-                "id": "49e22df4-c4e6-4948-8c9e-6004ddfce25c",
-                "key": "glucose",
-                "value": 99,
-                "simulated": false
-            },
-            {
-                "id": "0bee3b97-c380-41d8-9fc4-56189f57b2b5",
-                "key": "body_weight",
-                "value": 221.99,
-                "simulated": false
-            },
-            {
-                "id": "131db050-cdf5-4514-9ad7-096512d584d9",
-                "key": "discomfort",
-                "value": 9,
-                "simulated": false
-            },
-            {
-                "id": "46a3dc31-a9ee-48d4-9cb0-75cf74e1e6ff",
-                "key": "discomfort_notes",
-                "value": "testing",
-                "simulated": false
-            },
-            {
-                "id": "18a2917a-64f2-4f1c-9b4e-cd5abaffa472",
-                "key": "notes",
-                "value": "testing some more (general notes)",
-                "simulated": false
-            }
-        ]
     }
 ]
