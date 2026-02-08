@@ -1,0 +1,307 @@
+[
+    {
+        "timestamp": "2026-01-29T18:00:00Z",
+        "entries": [
+            {
+                "id": "a1b2c3d4-e5f6-4a5b-8c9d-e0f1a2b3c4d5",
+                "key": "body_weight",
+                "value": 230.0,
+                "simulated": false
+            },
+            {
+                "id": "b2c3d4e5-f6a7-4b6c-9d0e-f1a2b3c4d5e6",
+                "key": "notes",
+                "value": "Start Anchor",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-01-30T16:55:00Z",
+        "entries": [
+            {
+                "id": "c3d4e5f6-a7b8-4c7d-0e1f-a2b3c4d5e6f7",
+                "key": "glucose",
+                "value": 93.0,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-01-31T17:58:00Z",
+        "entries": [
+            {
+                "id": "d4e5f6a7-b8c9-4d8e-1f20-b3c4d5e6f7a8",
+                "key": "glucose",
+                "value": 67.0,
+                "simulated": false
+            },
+            {
+                "id": "e5f6a7b8-c9d0-4e9f-2031-c4d5e6f7a8b9",
+                "key": "ketones",
+                "value": 3.8,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-01-31T19:00:00Z",
+        "entries": [
+            {
+                "id": "f6a7b8c9-d0e1-4f0a-3142-d5e6f7a8b9c0",
+                "key": "cheat_snack",
+                "value": "Cheat 1 (Refeed: Heavy)",
+                "simulated": false
+            },
+            {
+                "id": "01234567-89ab-4cde-bf01-23456789abcd",
+                "key": "discomfort",
+                "value": 8,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-01-31T21:48:00Z",
+        "entries": [
+            {
+                "id": "12345678-9abc-4def-0123-456789abcdef",
+                "key": "cheat_snack",
+                "value": "Cheat 2 (Refeed: Heavy)",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-01T13:01:48Z",
+        "entries": [
+            {
+                "id": "23456789-abcd-4ef0-1234-56789abcde01",
+                "key": "glucose",
+                "value": 116.0,
+                "simulated": false
+            },
+            {
+                "id": "3456789a-bcde-4f01-2345-6789abcde012",
+                "key": "ketones",
+                "value": 2.6,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-02T10:25:12Z",
+        "entries": [
+            {
+                "id": "456789ab-cdef-4012-3456-789abcde0123",
+                "key": "glucose",
+                "value": 73.0,
+                "simulated": false
+            },
+            {
+                "id": "56789abc-def0-4123-4567-89abcde01234",
+                "key": "ketones",
+                "value": 2.2,
+                "simulated": false
+            },
+            {
+                "id": "6789abcd-ef01-4234-5678-9abcde012345",
+                "key": "keto_snack",
+                "value": "Walnuts",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-03T10:42:00Z",
+        "entries": [
+            {
+                "id": "789abcde-f012-4345-6789-abcde0123456",
+                "key": "keto_snack",
+                "value": "Walnuts",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-03T13:42:00Z",
+        "entries": [
+            {
+                "id": "89abcdef-0123-4456-789a-bcde01234567",
+                "key": "glucose",
+                "value": 68.0,
+                "simulated": false
+            },
+            {
+                "id": "9abcdef0-1234-4567-89ab-cde012345678",
+                "key": "ketones",
+                "value": 3.2,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-04T05:51:00Z",
+        "entries": [
+            {
+                "id": "abcdef01-2345-4678-9abc-de0123456789",
+                "key": "glucose",
+                "value": 106.0,
+                "simulated": false
+            },
+            {
+                "id": "bcdef012-3456-4789-abcd-e0123456789a",
+                "key": "ketones",
+                "value": 5.1,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-04T14:05:00Z",
+        "entries": [
+            {
+                "id": "cdef0123-4567-489a-bcde-0123456789ab",
+                "key": "glucose",
+                "value": 106.0,
+                "simulated": false
+            },
+            {
+                "id": "def01234-5678-49ab-cdef-123456789abc",
+                "key": "ketones",
+                "value": 5.7,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-05T07:50:00Z",
+        "entries": [
+            {
+                "id": "ef012345-6789-4abc-def0-23456789abcd",
+                "key": "glucose",
+                "value": 89.0,
+                "simulated": false
+            },
+            {
+                "id": "f0123456-789a-4bcd-ef01-3456789abcde",
+                "key": "ketones",
+                "value": 5.5,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-05T14:43:00Z",
+        "entries": [
+            {
+                "id": "01234567-89ab-4cde-f012-456789abcdef",
+                "key": "glucose",
+                "value": 98.0,
+                "simulated": false
+            },
+            {
+                "id": "12345678-9abc-4def-0123-56789abcdef0",
+                "key": "ketones",
+                "value": 8.0,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-05T19:22:00Z",
+        "entries": [
+            {
+                "id": "23456789-abcd-4ef0-1234-6789abcdef01",
+                "key": "glucose",
+                "value": 95.0,
+                "simulated": false
+            },
+            {
+                "id": "3456789a-bcde-4f01-2345-789abcdef012",
+                "key": "ketones",
+                "value": 6.1,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-05T19:45:00Z",
+        "entries": [
+            {
+                "id": "456789ab-cdef-4012-3456-89abcdef0123",
+                "key": "keto_snack",
+                "value": "Avocado & Broccoli",
+                "simulated": false
+            },
+            {
+                "id": "56789abc-def0-4123-4567-9abcdef01234",
+                "key": "discomfort",
+                "value": 6,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-06T01:00:00Z",
+        "entries": [
+            {
+                "id": "6789abcd-ef01-4234-5678-abcdef012345",
+                "key": "glucose",
+                "value": 84.0,
+                "simulated": false
+            },
+            {
+                "id": "789abcde-f012-4345-6789-bcdef0123456",
+                "key": "ketones",
+                "value": 4.8,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-06T06:45:00Z",
+        "entries": [
+            {
+                "id": "89abcdef-0123-4456-789a-cdef01234567",
+                "key": "glucose",
+                "value": 99.0,
+                "simulated": false
+            },
+            {
+                "id": "9abcdef0-1234-4567-89ab-def012345678",
+                "key": "ketones",
+                "value": 6.3,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-06T16:33:00Z",
+        "entries": [
+            {
+                "id": "abcdef01-2345-4678-9abc-ef0123456789",
+                "key": "body_weight",
+                "value": 221.6,
+                "simulated": false
+            },
+            {
+                "id": "bcdef012-3456-4789-abcd-f0123456789a",
+                "key": "notes",
+                "value": "Smart Scale",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-08T00:56:26.720777Z",
+        "entries": [
+            {
+                "id": "151180d2-745b-4c5a-9da6-64fee454d0ae",
+                "key": "glucose",
+                "value": 105.0,
+                "simulated": false
+            }
+        ]
+    }
+]
