@@ -181,19 +181,36 @@
         let lastDist = 0;
 
         img.onload = () => {
+            console.log("Chart image loaded successfully:", img.naturalWidth, "x", img.naturalHeight);
             loader.style.display = 'none';
             img.style.opacity = '1';
             resetView();
         };
 
+        img.onerror = (e) => {
+            console.error("Failed to load chart image. Check if /api/chart is accessible.", e);
+            loader.innerText = "Error: Image failed to load. Check console.";
+            loader.style.color = "red";
+        };
+
         function resetView() {
             const vWidth = viewport.clientWidth;
+            const vHeight = viewport.clientHeight;
             const iWidth = img.naturalWidth;
+            const iHeight = img.naturalHeight;
+
+            console.log("Resetting view. Viewport:", vWidth, "x", vHeight, "Image:", iWidth, "x", iHeight);
+
+            if (iWidth === 0) {
+                console.warn("Image width is 0, cannot calculate scale.");
+                return;
+            }
 
             // Fit-to-width
             scale = vWidth / iWidth;
             x = 0;
-            y = (viewport.clientHeight - (img.naturalHeight * scale)) / 2;
+            y = (vHeight - (iHeight * scale)) / 2;
+            console.log("Calculated Fit Scale:", scale, "Pos:", x, y);
             updateTransform();
         }
 
