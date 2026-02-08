@@ -5,7 +5,7 @@
             {
                 "id": "a1b2c3d4-e5f6-4a5b-8c9d-e0f1a2b3c4d5",
                 "key": "body_weight",
-                "value": 230.0,
+                "value": 230,
                 "simulated": false
             },
             {
@@ -22,7 +22,7 @@
             {
                 "id": "c3d4e5f6-a7b8-4c7d-0e1f-a2b3c4d5e6f7",
                 "key": "glucose",
-                "value": 93.0,
+                "value": 93,
                 "simulated": false
             }
         ]
@@ -33,7 +33,7 @@
             {
                 "id": "d4e5f6a7-b8c9-4d8e-1f20-b3c4d5e6f7a8",
                 "key": "glucose",
-                "value": 67.0,
+                "value": 67,
                 "simulated": false
             },
             {
@@ -78,7 +78,7 @@
             {
                 "id": "23456789-abcd-4ef0-1234-56789abcde01",
                 "key": "glucose",
-                "value": 116.0,
+                "value": 116,
                 "simulated": false
             },
             {
@@ -95,7 +95,7 @@
             {
                 "id": "456789ab-cdef-4012-3456-789abcde0123",
                 "key": "glucose",
-                "value": 73.0,
+                "value": 73,
                 "simulated": false
             },
             {
@@ -129,7 +129,7 @@
             {
                 "id": "89abcdef-0123-4456-789a-bcde01234567",
                 "key": "glucose",
-                "value": 68.0,
+                "value": 68,
                 "simulated": false
             },
             {
@@ -146,7 +146,7 @@
             {
                 "id": "abcdef01-2345-4678-9abc-de0123456789",
                 "key": "glucose",
-                "value": 106.0,
+                "value": 106,
                 "simulated": false
             },
             {
@@ -163,7 +163,7 @@
             {
                 "id": "cdef0123-4567-489a-bcde-0123456789ab",
                 "key": "glucose",
-                "value": 106.0,
+                "value": 106,
                 "simulated": false
             },
             {
@@ -180,7 +180,7 @@
             {
                 "id": "ef012345-6789-4abc-def0-23456789abcd",
                 "key": "glucose",
-                "value": 89.0,
+                "value": 89,
                 "simulated": false
             },
             {
@@ -197,13 +197,13 @@
             {
                 "id": "01234567-89ab-4cde-f012-456789abcdef",
                 "key": "glucose",
-                "value": 98.0,
+                "value": 98,
                 "simulated": false
             },
             {
                 "id": "12345678-9abc-4def-0123-56789abcdef0",
                 "key": "ketones",
-                "value": 8.0,
+                "value": 8,
                 "simulated": false
             }
         ]
@@ -214,7 +214,7 @@
             {
                 "id": "23456789-abcd-4ef0-1234-6789abcdef01",
                 "key": "glucose",
-                "value": 95.0,
+                "value": 95,
                 "simulated": false
             },
             {
@@ -248,7 +248,7 @@
             {
                 "id": "6789abcd-ef01-4234-5678-abcdef012345",
                 "key": "glucose",
-                "value": 84.0,
+                "value": 84,
                 "simulated": false
             },
             {
@@ -265,7 +265,7 @@
             {
                 "id": "89abcdef-0123-4456-789a-cdef01234567",
                 "key": "glucose",
-                "value": 99.0,
+                "value": 99,
                 "simulated": false
             },
             {
@@ -300,6 +300,41 @@
                 "id": "test-uuid-123",
                 "key": "ketones",
                 "value": 4.5,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-08T04:43:40.678Z",
+        "entries": [
+            {
+                "id": "9267b416-94e6-4bab-8452-ebe1ad87d0bd",
+                "key": "ketones",
+                "value": 4.5,
+                "simulated": false
+            },
+            {
+                "id": "2783b9e7-2e91-4ae1-91a6-ffd036ef3fc2",
+                "key": "glucose",
+                "value": 99,
+                "simulated": false
+            },
+            {
+                "id": "ec283a56-abec-43f3-a6a4-5161c526d10b",
+                "key": "body_weight",
+                "value": 221.6,
+                "simulated": false
+            },
+            {
+                "id": "feded615-57d2-4860-a85f-711f89d8c406",
+                "key": "discomfort",
+                "value": 6,
+                "simulated": false
+            },
+            {
+                "id": "cea1cbe9-0c3b-4f47-a9ea-9671621ff3d2",
+                "key": "keto_snack",
+                "value": "Meal Entry",
                 "simulated": false
             }
         ]
