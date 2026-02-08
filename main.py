@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, Query, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import json
 import os
 import hashlib
@@ -124,6 +125,38 @@ async def get_telemetry(
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
 
+@app.get("/api/config")
+async def get_config():
+    return {
+        "sillykey": get_sillykey(),
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+
+@app.get("/api/latest")
+async def get_latest():
+    if not os.path.exists(DATA_FILE):
+        return {}
+    with open(DATA_FILE, "r") as f:
+        data = json.load(f)
+    
+    if not data:
+        return {}
+    
+    # Extract most recent values for all keys
+    latest = {}
+    # Iterate backwards to find last occurrence of each key
+    for block in reversed(data):
+        for entry in block["entries"]:
+            if entry["key"] not in latest:
+                latest[entry["key"]] = entry["value"]
+    return latest
+
+@app.get("/")
+async def read_index():
+    return FileResponse("static/index.html")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 @app.get("/api/chart")
 async def get_chart():
     if not os.path.exists(CHART_FILE):
@@ -138,4 +171,4 @@ async def get_chart():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FastTrack | Mobile Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #ff007a;
+            --bg: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --meal-color: #f6d365;
+            --submit-color: #43e97b;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 172, 254, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 0, 122, 0.1) 0px, transparent 50%);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            letter-spacing: -1px;
+        }
+
+        .datetime {
+            font-size: 1rem;
+            font-weight: 300;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .dashboard-card {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .field-group {
+            margin-bottom: 25px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.2);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .unit {
+            position: absolute;
+            right: 20px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: none;
+            height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .ketone-hi-toggle {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-dim);
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 0, 122, 0.4);
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 20px;
+            padding: 18px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #0c3e1e;
+            box-shadow: 0 10px 20px rgba(67, 233, 123, 0.2);
+        }
+
+        .btn-meal {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #5a3c00;
+            box-shadow: 0 10px 20px rgba(246, 211, 101, 0.2);
+        }
+
+        .status-msg {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            min-height: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-msg.visible {
+            opacity: 1;
+        }
+
+        .status-success { color: #43e97b; }
+        .status-error { color: #ff4757; }
+
+        /* Animation for loading */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        /* Responsive spacing */
+        @media (max-width: 400px) {
+            .dashboard-card {
+                padding: 20px;
+            }
+            .logo {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">FastTrack</div>
+        <div class="datetime" id="current-time">Feb 7, 2026 • 20:17</div>
+    </header>
+
+    <main class="dashboard-card">
+        <form id="entry-form">
+            <div class="field-group">
+                <label class="field-label">Ketones</label>
+                <div class="input-wrapper">
+                    <input type="text" id="ketones" inputmode="decimal" placeholder="0.0">
+                    <span class="unit">mmol/L</span>
+                </div>
+                <div class="ketone-hi-toggle">
+                    <button type="button" class="toggle-btn" id="hi-toggle">HI (Max)</button>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Glucose</label>
+                <div class="input-wrapper">
+                    <input type="number" id="glucose" inputmode="numeric" placeholder="0">
+                    <span class="unit">mg/dL</span>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Body Weight</label>
+                <div class="input-wrapper">
+                    <input type="number" id="body_weight" step="0.1" inputmode="decimal" placeholder="000.0">
+                    <span class="unit">lbs</span>
+                </div>
+            </div>
+
+            <div class="field-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <label class="field-label">Total Fat</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="total_fat" step="0.1" inputmode="decimal" placeholder="0.0">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="field-label">Visceral Fat</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="visceral_fat" inputmode="numeric" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Discomfort Level (0-10)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="discomfort" min="0" max="10" inputmode="numeric" placeholder="0">
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Discomfort Notes</label>
+                <textarea id="discomfort_notes" placeholder="Describe any discomfort..."></textarea>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">General Notes</label>
+                <textarea id="notes" placeholder="Activity, feelings, etc..."></textarea>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn btn-meal" id="btn-meal">
+                    <span>🥗</span> Meal
+                </button>
+                <button type="button" class="btn btn-submit" id="btn-submit">
+                    <span>✓</span> Submit
+                </button>
+            </div>
+        </form>
+
+        <div id="status" class="status-msg"></div>
+    </main>
+
+    <script>
+        const API_BASE = "";
+        let currentSillyKey = "";
+        
+        // Update Time
+        function updateTime() {
+            const now = new Date();
+            const options = { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('current-time').innerText = now.toLocaleString('en-US', options).replace(',', ' •');
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // HI Toggle for Ketones
+        const hiToggle = document.getElementById('hi-toggle');
+        const ketoneInput = document.getElementById('ketones');
+        
+        hiToggle.addEventListener('click', () => {
+            hiToggle.classList.toggle('active');
+            if (hiToggle.classList.contains('active')) {
+                ketoneInput.value = "HI";
+                ketoneInput.disabled = true;
+            } else {
+                ketoneInput.value = "";
+                ketoneInput.disabled = false;
+            }
+        });
+
+        // Load Config and Latest Data
+        async function init() {
+            try {
+                const configRes = await fetch('/api/config');
+                const config = await configRes.json();
+                currentSillyKey = config.sillykey;
+
+                const latestRes = await fetch('/api/latest');
+                const latest = await latestRes.json();
+
+                // Pre-populate fields
+                if (latest.ketones) {
+                    if (latest.ketones >= 8) {
+                        ketoneInput.value = "HI";
+                        hiToggle.classList.add('active');
+                        ketoneInput.disabled = true;
+                    } else {
+                        ketoneInput.value = latest.ketones;
+                    }
+                }
+                if (latest.glucose) document.getElementById('glucose').value = latest.glucose;
+                if (latest.body_weight) document.getElementById('body_weight').value = latest.body_weight;
+                if (latest.total_fat) document.getElementById('total_fat').value = latest.total_fat;
+                if (latest.visceral_fat) document.getElementById('visceral_fat').value = latest.visceral_fat;
+                if (latest.discomfort) document.getElementById('discomfort').value = latest.discomfort;
+                
+            } catch (err) {
+                console.error("Initialization failed", err);
+                showStatus("Error loading latest data", true);
+            }
+        }
+
+        function showStatus(msg, isError = false) {
+            const status = document.getElementById('status');
+            status.innerText = msg;
+            status.className = 'status-msg visible ' + (isError ? 'status-error' : 'status-success');
+            setTimeout(() => {
+                status.className = 'status-msg';
+            }, 3000);
+        }
+
+        async function submitEntry(isMeal = false) {
+            const btn = isMeal ? document.getElementById('btn-meal') : document.getElementById('btn-submit');
+            btn.classList.add('loading');
+            
+            try {
+                const ts = new Date().toISOString().replace('Z', '') + 'Z';
+                const entries = [];
+                
+                // Collect values
+                const ketonesVal = ketoneInput.value === "HI" ? 8.0 : parseFloat(ketoneInput.value);
+                const glucoseVal = parseFloat(document.getElementById('glucose').value);
+                const weightVal = parseFloat(document.getElementById('body_weight').value);
+                const totalFatVal = parseFloat(document.getElementById('total_fat').value);
+                const visceralFatVal = parseFloat(document.getElementById('visceral_fat').value);
+                const discomfortVal = parseInt(document.getElementById('discomfort').value);
+                const discomfortNotes = document.getElementById('discomfort_notes').value;
+                const notes = document.getElementById('notes').value;
+
+                if (!isNaN(ketonesVal)) entries.push({key: 'ketones', value: ketonesVal});
+                if (!isNaN(glucoseVal)) entries.push({key: 'glucose', value: glucoseVal});
+                if (!isNaN(weightVal)) entries.push({key: 'body_weight', value: weightVal});
+                if (!isNaN(totalFatVal)) entries.push({key: 'total_fat', value: totalFatVal});
+                if (!isNaN(visceralFatVal)) entries.push({key: 'visceral_fat', value: visceralFatVal});
+                if (!isNaN(discomfortVal)) entries.push({key: 'discomfort', value: discomfortVal});
+                if (discomfortNotes) entries.push({key: 'discomfort_notes', value: discomfortNotes});
+                
+                if (isMeal) {
+                    entries.push({key: 'keto_snack', value: notes || "Meal Entry"});
+                } else if (notes) {
+                    entries.push({key: 'notes', value: notes});
+                }
+
+                if (entries.length === 0) {
+                    showStatus("No data to submit", true);
+                    return;
+                }
+
+                // We need to fetch current data, append/merge, and then batch sync
+                // because 'add' only does one entry. For multiple entries at once, use batch.
+                const currentDataRes = await fetch('/api/telemetry');
+                const currentData = await currentDataRes.json();
+
+                // Create individual entry objects with UUIDs
+                const preparedEntries = entries.map(e => ({
+                    id: crypto.randomUUID(),
+                    key: e.key,
+                    value: e.value,
+                    simulated: false
+                }));
+
+                currentData.push({
+                    timestamp: ts,
+                    entries: preparedEntries
+                });
+
+                const syncRes = await fetch(`/api/telemetry?action=batch&sillykey=${currentSillyKey}&payload=${encodeURIComponent(jsonStringify(currentData))}`);
+                
+                if (syncRes.ok) {
+                    showStatus(isMeal ? "Meal logged!" : "Data submitted!");
+                } else {
+                    const err = await syncRes.json();
+                    showStatus(err.detail || "Submission failed", true);
+                }
+
+            } catch (err) {
+                console.error("Submission failed", err);
+                showStatus("Network error", true);
+            } finally {
+                btn.classList.remove('loading');
+            }
+        }
+
+        // Helper because some JSON stringify might be needed
+        function jsonStringify(obj) {
+            return JSON.stringify(obj);
+        }
+
+        document.getElementById('btn-submit').addEventListener('click', () => submitEntry(false));
+        document.getElementById('btn-meal').addEventListener('click', () => submitEntry(true));
+
+        init();
+    </script>
+</body>
+</html>
