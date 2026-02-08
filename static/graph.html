@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FastTrack | High-Res Analytics</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,9 +31,10 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Prevents the 'bounce' effect on Mac/iOS */
             position: fixed;
             width: 100%;
+            /* This is critical to stop the "pinch-to-zoom" on the whole page */
+            touch-action: none;
         }
 
         header {
@@ -41,10 +42,10 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 2000;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 5000;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -53,6 +54,7 @@
             text-decoration: none;
             padding: 10px;
             font-weight: 700;
+            font-size: 1.2rem;
         }
 
         .refresh-btn {
@@ -60,10 +62,16 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
             padding: 8px 16px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-family: inherit;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .viewport {
@@ -71,8 +79,7 @@
             position: relative;
             overflow: hidden;
             background: #000;
-            touch-action: none;
-            /* Disables standard browser zooming/panning */
+            cursor: crosshair;
         }
 
         #chart-img {
@@ -81,32 +88,54 @@
             left: 0;
             transform-origin: 0 0;
             will-change: transform;
-            cursor: move;
+            image-rendering: high-quality;
         }
 
         .hud {
             position: absolute;
-            top: 80px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px 15px;
-            border-radius: 12px;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-radius: 15px;
             pointer-events: none;
-            z-index: 1000;
-            font-size: 0.8rem;
+            z-index: 4000;
+            font-size: 0.9rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        .hud div {
-            margin-bottom: 5px;
+        .hud-row {
             display: flex;
             justify-content: space-between;
-            gap: 20px;
+            gap: 30px;
+            margin-bottom: 5px;
         }
 
         .hud span {
             color: var(--primary);
-            font-weight: 700;
+            font-weight: 800;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+
+        .hint {
+            font-size: 0.7rem;
+            color: #777;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Loader */
+        #loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-dim);
+            font-weight: 600;
         }
     </style>
 </head>
@@ -114,9 +143,9 @@
 <body>
 
     <header>
-        <a href="/" class="back-link">← DASH</a>
-        <div style="font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; color: var(--text-dim);">ULTRA-RES
-            ANALYTICS</div>
+        <a href="/" class="back-link">✕</a>
+        <div style="font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; color: var(--primary);">45K PANORAMIC VIEW
+        </div>
         <div style="display: flex; gap: 8px;">
             <button class="refresh-btn" onclick="resetView()">RESET</button>
             <button class="refresh-btn" onclick="location.reload()">🔄</button>
@@ -124,11 +153,13 @@
     </header>
 
     <main class="viewport" id="viewport">
-        <img id="chart-img" src="/api/chart" alt="Metabolic Graph">
+        <div id="loader">Loading 45K Image...</div>
+        <img id="chart-img" src="/api/chart" alt="Metabolic Graph" style="opacity: 0;">
         <div class="hud">
-            <div>Scale: <span id="debug-scale">1.0x</span></div>
-            <div style="font-size: 0.7rem; color: #555;">Mac: Pinch Trackpad</div>
-            <div style="font-size: 0.7rem; color: #555;">iOS: Two-finger Pinch</div>
+            <div class="hud-row">Zoom: <span id="debug-scale">1.00x</span></div>
+            <div class="hud-row">Pos: <span id="debug-pos">0, 0</span></div>
+            <div class="hint">Mac: Trackpad Pinch</div>
+            <div class="hint">iOS: Multi-Touch</div>
         </div>
     </main>
 
@@ -136,6 +167,8 @@
         const viewport = document.getElementById('viewport');
         const img = document.getElementById('chart-img');
         const scaleDisplay = document.getElementById('debug-scale');
+        const posDisplay = document.getElementById('debug-pos');
+        const loader = document.getElementById('loader');
 
         let scale = 1;
         let x = 0;
@@ -143,16 +176,21 @@
         let isPanning = false;
         let lastX, lastY;
 
-        // Non-standard gesture state for tracking pinch magnitude
+        // State for pinch gestures
         let initialScale = 1;
+        let lastDist = 0;
 
         img.onload = () => {
+            loader.style.display = 'none';
+            img.style.opacity = '1';
             resetView();
         };
 
         function resetView() {
             const vWidth = viewport.clientWidth;
             const iWidth = img.naturalWidth;
+
+            // Fit-to-width
             scale = vWidth / iWidth;
             x = 0;
             y = (viewport.clientHeight - (img.naturalHeight * scale)) / 2;
@@ -160,15 +198,71 @@
         }
 
         function updateTransform() {
-            img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+            // Use translate3d for GPU acceleration
+            img.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
             scaleDisplay.innerText = scale.toFixed(2) + 'x';
+            posDisplay.innerText = `${Math.round(x)}, ${Math.round(y)}`;
         }
 
-        // --- 1. MOUSE / POINTER PANNING ---
+        // --- 1. GLOBAL WINDOW LISTENERS (Most Reliable for MacBook) ---
+        // Attaching to window with { passive: false } allows us to block the browser's own zoom.
+        window.addEventListener('wheel', (e) => {
+            // Only act if we're interacting with the viewport area
+            if (e.target.closest('#viewport') || e.target.id === 'viewport') {
+                e.preventDefault();
+
+                if (e.ctrlKey) {
+                    // PINCH on Mac Trackpad
+                    // Normalize deltaY: Chrome uses ~1-100, we want a smooth multiplier.
+                    const zoomIntensity = 0.005;
+                    const zoomFactor = Math.pow(1.1, -e.deltaY * zoomIntensity);
+
+                    applyZoom(zoomFactor, e.clientX, e.clientY);
+                } else {
+                    // TWO-FINGER SCROLL / PAN
+                    x -= e.deltaX;
+                    y -= e.deltaY;
+                }
+                updateTransform();
+            }
+        }, { passive: false });
+
+        // --- 2. SAFARI GESTURE EVENTS (Native MacBook/iOS Safari Support) ---
+        window.addEventListener('gesturestart', e => {
+            if (e.target.closest('#viewport')) {
+                e.preventDefault();
+                initialScale = scale;
+            }
+        });
+
+        window.addEventListener('gesturechange', e => {
+            if (e.target.closest('#viewport')) {
+                e.preventDefault();
+                // e.scale is the absolute scale multiplier since the gesture started
+                const nextScale = initialScale * e.scale;
+
+                // Zoom relative to the center of the gesture
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const imageX = (mouseX - x) / scale;
+                const imageY = (mouseY - y) / scale;
+
+                x = mouseX - imageX * nextScale;
+                y = mouseY - imageY * nextScale;
+                scale = nextScale;
+
+                updateTransform();
+            }
+        });
+
+        // --- 3. MOUSE PANNING (Click & Drag) ---
         viewport.addEventListener('mousedown', e => {
             isPanning = true;
             lastX = e.clientX;
             lastY = e.clientY;
+            viewport.style.cursor = 'grabbing';
         });
 
         window.addEventListener('mousemove', e => {
@@ -180,34 +274,18 @@
             updateTransform();
         });
 
-        window.addEventListener('mouseup', () => isPanning = false);
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+            viewport.style.cursor = 'crosshair';
+        });
 
-        // --- 2. MACBOOK TRACKPAD (Wheel with Ctrl) ---
-        // Crucial: 'passive: false' is mandatory to allow preventDefault
-        viewport.addEventListener('wheel', e => {
-            e.preventDefault();
-
-            if (e.ctrlKey) {
-                // This is a pinch gesture on Mac Trackpad
-                const zoomIntensity = 0.01;
-                const zoomFactor = Math.pow(1.1, -e.deltaY * zoomIntensity);
-                applyZoom(zoomFactor, e.clientX, e.clientY);
-            } else {
-                // Two finger scroll as panning
-                x -= e.deltaX;
-                y -= e.deltaY;
-                updateTransform();
-            }
-        }, { passive: false });
-
-        // --- 3. iOS / MOBILE TOUCH (Pointer Events for single, manual for double) ---
-        let lastTouchDist = 0;
+        // --- 4. TOUCH EVENTS (iPhone/iPad Support) ---
         viewport.addEventListener('touchstart', e => {
             if (e.touches.length === 1) {
                 lastX = e.touches[0].clientX;
                 lastY = e.touches[0].clientY;
             } else if (e.touches.length === 2) {
-                lastTouchDist = Math.hypot(
+                lastDist = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
                 );
@@ -215,54 +293,31 @@
         });
 
         viewport.addEventListener('touchmove', e => {
-            e.preventDefault(); // Stop standard bounce/scroll
+            e.preventDefault();
             if (e.touches.length === 1) {
+                // Single finger pan
                 x += (e.touches[0].clientX - lastX);
                 y += (e.touches[0].clientY - lastY);
                 lastX = e.touches[0].clientX;
                 lastY = e.touches[0].clientY;
             } else if (e.touches.length === 2) {
+                // Two finger pinch
                 const dist = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
                 );
-                const zoomFactor = dist / lastTouchDist;
+                const zoomFactor = dist / lastDist;
 
                 const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
                 const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
                 applyZoom(zoomFactor, midX, midY);
-                lastTouchDist = dist;
+                lastDist = dist;
             }
             updateTransform();
         }, { passive: false });
 
-        // --- 4. SAFARI GESTURE EVENTS ---
-        // Specifically for Safari on Mac/iOS
-        viewport.addEventListener('gesturestart', e => {
-            e.preventDefault();
-            initialScale = scale;
-        });
-
-        viewport.addEventListener('gesturechange', e => {
-            e.preventDefault();
-            const nextScale = initialScale * e.scale;
-
-            // Re-calculate centered zoom
-            const rect = viewport.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-
-            const imageX = (mouseX - x) / scale;
-            const imageY = (mouseY - y) / scale;
-
-            x = mouseX - imageX * nextScale;
-            y = mouseY - imageY * nextScale;
-            scale = nextScale;
-
-            updateTransform();
-        });
-
+        // Utility: Zoom centered on a specific point
         function applyZoom(factor, centerX, centerY) {
             const rect = viewport.getBoundingClientRect();
             const mouseX = centerX - rect.left;
@@ -272,10 +327,13 @@
             const imageY = (mouseY - y) / scale;
 
             const nextScale = scale * factor;
+
+            // Limit scale to avoid crashing or infinite loops
+            if (nextScale < 0.01 || nextScale > 20) return;
+
             x = mouseX - imageX * nextScale;
             y = mouseY - imageY * nextScale;
             scale = nextScale;
-            updateTransform();
         }
 
     </script>
