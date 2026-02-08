@@ -155,6 +155,10 @@ async def get_latest():
 async def read_index():
     return FileResponse("static/index.html")
 
+@app.get("/meal")
+async def read_meal():
+    return FileResponse("static/meal.html")
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/api/chart")

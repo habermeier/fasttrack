@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FastTrack | Log Meal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f6d365;
+            --secondary: #fda085;
+            --accent: #ff007a;
+            --bg: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --keto-color: #43e97b;
+            --cheat-color: #ff4757;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(at 0% 100%, rgba(246, 211, 101, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(253, 160, 133, 0.1) 0px, transparent 50%);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-card {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .type-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .type-btn.active.keto {
+            border-color: var(--keto-color);
+            background: rgba(67, 233, 123, 0.1);
+            color: var(--keto-color);
+            box-shadow: 0 0 20px rgba(67, 233, 123, 0.2);
+        }
+
+        .type-btn.active.cheat {
+            border-color: var(--cheat-color);
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--cheat-color);
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.2);
+        }
+
+        .field-group {
+            margin-bottom: 25px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1.1rem;
+            resize: none;
+            height: 150px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-submit {
+            width: 100%;
+            border: none;
+            border-radius: 20px;
+            padding: 20px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #5a3c00;
+            box-shadow: 0 10px 20px rgba(246, 211, 101, 0.2);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.95);
+        }
+
+        .status-msg {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            min-height: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-msg.visible {
+            opacity: 1;
+        }
+
+        .status-success {
+            color: #43e97b;
+        }
+
+        .status-error {
+            color: #ff4757;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <a href="/" class="back-link">← Dash</a>
+        <div class="logo">Log Meal</div>
+        <div style="width: 50px;"></div> <!-- Spacer -->
+    </header>
+
+    <main class="dashboard-card">
+        <h2>What's on the menu?</h2>
+
+        <div class="type-selector">
+            <button type="button" class="type-btn keto active" id="keto-btn">KETO</button>
+            <button type="button" class="type-btn cheat" id="cheat-btn">CHEAT</button>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Description</label>
+            <textarea id="meal-desc" placeholder="What did you eat? be specific..."></textarea>
+        </div>
+
+        <button type="button" class="btn-submit" id="submit-meal">Log Meal Entry</button>
+
+        <div id="status" class="status-msg"></div>
+    </main>
+
+    <script>
+        let currentSillyKey = "";
+        let mealType = "keto_snack";
+
+        const ketoBtn = document.getElementById('keto-btn');
+        const cheatBtn = document.getElementById('cheat-btn');
+
+        ketoBtn.addEventListener('click', () => {
+            ketoBtn.classList.add('active');
+            cheatBtn.classList.remove('active');
+            mealType = "keto_snack";
+        });
+
+        cheatBtn.addEventListener('click', () => {
+            cheatBtn.classList.add('active');
+            ketoBtn.classList.remove('active');
+            mealType = "cheat_snack";
+        });
+
+        async function init() {
+            try {
+                const configRes = await fetch('/api/config');
+                const config = await configRes.json();
+                currentSillyKey = config.sillykey;
+            } catch (err) {
+                console.error("Config load failed", err);
+            }
+        }
+
+        function showStatus(msg, isError = false) {
+            const status = document.getElementById('status');
+            status.innerText = msg;
+            status.className = 'status-msg visible ' + (isError ? 'status-error' : 'status-success');
+            setTimeout(() => {
+                status.className = 'status-msg';
+            }, 3000);
+        }
+
+        document.getElementById('submit-meal').addEventListener('click', async () => {
+            const desc = document.getElementById('meal-desc').value;
+            if (!desc) {
+                showStatus("Please enter a description", true);
+                return;
+            }
+
+            const btn = document.getElementById('submit-meal');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const ts = new Date().toISOString().replace('Z', '') + 'Z';
+
+                const currentDataRes = await fetch('/api/telemetry');
+                const currentData = await currentDataRes.json();
+
+                currentData.push({
+                    timestamp: ts,
+                    entries: [{
+                        id: crypto.randomUUID(),
+                        key: mealType,
+                        value: desc,
+                        simulated: false
+                    }]
+                });
+
+                const syncRes = await fetch(`/api/telemetry?action=batch&sillykey=${currentSillyKey}&payload=${encodeURIComponent(JSON.stringify(currentData))}`);
+
+                if (syncRes.ok) {
+                    showStatus("Meal logged! Redirecting...");
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 1500);
+                } else {
+                    const err = await syncRes.json();
+                    showStatus(err.detail || "Submission failed", true);
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error("Submission failed", err);
+                showStatus("Network error", true);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
