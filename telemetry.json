@@ -9,5 +9,16 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-02-08T02:16:27.531412Z",
+        "entries": [
+            {
+                "id": "20a56317-e46a-4854-9c53-ba2b4850a2bb",
+                "key": "glucose",
+                "value": 110.5,
+                "simulated": false
+            }
+        ]
     }
 ]
