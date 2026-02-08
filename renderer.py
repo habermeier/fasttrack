@@ -81,12 +81,13 @@ def generate_chart(nested_data, output_path="chart.png"):
     bridge_events = df[df['keto_snack'].notnull()]
 
     # 6. PLOT GENERATION
-    plt.rcParams.update({'font.size': 14, 'font.family': 'sans-serif'})
-    fig, ax1 = plt.subplots(figsize=(20, 14))
-    plt.subplots_adjust(right=0.8) # Adjust to make room for Y-axes
+    plt.rcParams.update({'font.size': 22, 'font.family': 'sans-serif'})
+    # Ultra-wide panoramic view to prevent temporal squishing (3:1 aspect ratio)
+    fig, ax1 = plt.subplots(figsize=(60, 20), dpi=300) 
+    plt.subplots_adjust(right=0.75, left=0.08, top=0.88, bottom=0.12)
 
     # Primary Axis: Glucose
-    ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold')
+    ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=28)
     ax1.fill_between(sim_dates, band_low, band_high, color='red', alpha=0.08, label='Circadian Healthy Band')
     ax1.plot(sim_dates, smooth_glucose, color='#d62728', lw=10, alpha=0.2)
     ax1.scatter(df.dropna(subset=['glucose'])['timestamp'], df.dropna(subset=['glucose'])['glucose'], color='#d62728', s=400, edgecolors='black', label='Measured Glucose', zorder=5)
@@ -126,10 +127,10 @@ def generate_chart(nested_data, output_path="chart.png"):
         ax1.axvline(x=row['timestamp'], color='salmon', lw=4, alpha=0.6, ls=':')
         ax1.text(row['timestamp'], 158, row['cheat_snack'], rotation=90, verticalalignment='top', fontsize=10, fontweight='bold')
 
-    for idx, row in bridge_events.iterrows():
+    for _, row in bridge_events.iterrows():
         ax1.axvline(x=row['timestamp'], color='lightgreen', lw=4, alpha=0.6, ls=':')
-        ax1.text(row['timestamp'], 158, row['keto_snack'], rotation=90, verticalalignment='top', fontsize=10, fontweight='bold')
+        ax1.text(row['timestamp'], 158, row['keto_snack'], rotation=90, verticalalignment='top', fontsize=12, fontweight='bold')
 
-    plt.title("Master-View v28: FastTrack Dashboard Rendering", fontsize=24, fontweight='bold', pad=40)
-    plt.savefig(output_path)
+    plt.title("Master-View v28: FastTrack Dashboard Analytics", fontsize=48, fontweight='bold', pad=100)
+    plt.savefig(output_path, dpi=300) 
     plt.close()

@@ -20,32 +20,31 @@
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Header stays, main scrolls */
+            touch-action: none;
+            /* Crucial for custom gestures */
         }
 
         header {
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            z-index: 1000;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -60,7 +59,7 @@
         }
 
         .logo {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
             background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -68,63 +67,57 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .graph-container {
-            flex: 1;
-            padding: 0;
-            overflow: auto;
-            /* Allow dragging/scrolling */
-            display: block;
-            /* Support vertical and horizontal overflow */
-            background: #000;
-            -webkit-overflow-scrolling: touch;
-            /* Smooth mobile scrolling */
-        }
-
-        #chart-img {
-            width: 2000px;
-            /* High resolution ground truth width */
-            max-width: none;
-            height: auto;
-            border-radius: 0;
-            box-shadow: none;
-            display: block;
-        }
-
-        .controls {
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
         .refresh-btn {
             background: var(--card-bg);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            padding: 10px 20px;
-            border-radius: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
             font-family: inherit;
             font-weight: 600;
             cursor: pointer;
+        }
+
+        .viewport {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+            cursor: grab;
+        }
+
+        .viewport:active {
+            cursor: grabbing;
+        }
+
+        #chart-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+            /* width and height will be set via script to maintain resolution */
+        }
+
+        .hud {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            padding: 10px 20px;
+            border-radius: 30px;
             display: flex;
-            align-items: center;
-            gap: 8px;
+            gap: 20px;
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .refresh-btn:active {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Landscape specific optimization for mobile */
-        @media (orientation: landscape) {
-            header {
-                padding: 10px 20px;
-            }
-
-            #chart-img {
-                max-height: calc(100vh - 60px);
-            }
+        .hud span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dim);
         }
     </style>
 </head>
@@ -132,24 +125,155 @@
 <body>
 
     <header>
-        <a href="/" class="back-link">← Dash</a>
-        <div class="logo">Metabolic Analytics</div>
-        <button class="refresh-btn" onclick="refreshChart()">
-            <span>🔄</span>
-        </button>
+        <a href="/" class="back-link">←</a>
+        <div class="logo">Metabolic Analytics (V28 Panzoom)</div>
+        <div style="display: flex; gap: 10px;">
+            <button class="refresh-btn" onclick="resetView()">Reset</button>
+            <button class="refresh-btn" onclick="location.reload()">🔄</button>
+        </div>
     </header>
 
-    <main class="graph-container">
+    <main class="viewport" id="viewport">
         <img id="chart-img" src="/api/chart" alt="Metabolic Graph">
+        <div class="hud">
+            <span>Pinch to Zoom</span>
+            <span>Drag to Pan</span>
+        </div>
     </main>
 
     <script>
-        function refreshChart() {
-            const img = document.getElementById('chart-img');
-            img.src = '/api/chart?t=' + new Date().getTime();
+        const viewport = document.getElementById('viewport');
+        const img = document.getElementById('chart-img');
+
+        let scale = 1;
+        let x = 0;
+        let y = 0;
+        let isDragging = false;
+        let lastX, lastY;
+        let lastDist = 0;
+
+        // Initialize view
+        img.onload = () => {
+            resetView();
+        };
+
+        function resetView() {
+            // Initial fit-to-width
+            const vWidth = viewport.clientWidth;
+            const iWidth = img.naturalWidth;
+
+            scale = vWidth / iWidth;
+            if (scale > 1) scale = 0.5; // Don't over-scale if small data
+
+            x = 0;
+            y = (viewport.clientHeight - (img.naturalHeight * scale)) / 2;
+            updateTransform();
         }
 
-        // Double tap toggle for full zoom logic could go here
+        function updateTransform() {
+            img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+        }
+
+        // Pointer Events (Mouse + Touch)
+        viewport.addEventListener('pointerdown', e => {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            viewport.setPointerCapture(e.pointerId);
+        });
+
+        viewport.addEventListener('pointermove', e => {
+            if (!isDragging) return;
+
+            // Pan logic
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+
+            x += dx;
+            y += dy;
+
+            lastX = e.clientX;
+            lastY = e.clientY;
+
+            updateTransform();
+        });
+
+        viewport.addEventListener('pointerup', e => {
+            isDragging = false;
+        });
+
+        // Wheel (MacBook Trackpad Pinch + Scroll)
+        // MacBook Trackpad pinch sends wheel event with ctrlKey: true
+        viewport.addEventListener('wheel', e => {
+            e.preventDefault();
+
+            if (e.ctrlKey) {
+                // Zoom
+                const zoomFactor = 1 - e.deltaY * 0.01;
+                const nextScale = scale * zoomFactor;
+
+                // Keep zoom centered on mouse
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const imageMouseX = (mouseX - x) / scale;
+                const imageMouseY = (mouseY - y) / scale;
+
+                x = mouseX - imageMouseX * nextScale;
+                y = mouseY - imageMouseY * nextScale;
+
+                scale = nextScale;
+            } else {
+                // Scroll as Pan
+                x -= e.deltaX;
+                y -= e.deltaY;
+            }
+
+            updateTransform();
+        }, { passive: false });
+
+        // Touch Gestures (iPhone Pinch)
+        viewport.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                lastDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            }
+        });
+
+        viewport.addEventListener('touchmove', e => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+
+                const zoomFactor = dist / lastDist;
+                const nextScale = scale * zoomFactor;
+
+                // Zoom center (midpoint of fingers)
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = midX - rect.left;
+                const mouseY = midY - rect.top;
+
+                const imageMouseX = (mouseX - x) / scale;
+                const imageMouseY = (mouseY - y) / scale;
+
+                x = mouseX - imageMouseX * nextScale;
+                y = mouseY - imageMouseY * nextScale;
+
+                scale = nextScale;
+                lastDist = dist;
+                updateTransform();
+            }
+        }, { passive: false });
+
     </script>
 </body>
 
