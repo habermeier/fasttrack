@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+matplotlib
+pandas
+numpy
+scipy
+python-multipart
+slowapi
+requests

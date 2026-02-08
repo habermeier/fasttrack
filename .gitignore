@@ -1,0 +1,21 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+bin/
+lib/
+share/
+pyvenv.cfg
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Generated Artifacts
+chart.png
+server.log
+
+# IDEs
+.vscode/
+.idea/
