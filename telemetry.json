@@ -11,12 +11,12 @@
         ]
     },
     {
-        "timestamp": "2026-02-08T02:16:27.531412Z",
+        "timestamp": "2026-02-08T02:16:27.819888Z",
         "entries": [
             {
-                "id": "20a56317-e46a-4854-9c53-ba2b4850a2bb",
-                "key": "glucose",
-                "value": 110.5,
+                "id": "test-uuid-123",
+                "key": "ketones",
+                "value": 4.5,
                 "simulated": false
             }
         ]
