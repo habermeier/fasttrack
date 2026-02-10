@@ -8,7 +8,7 @@ echo ""
 # Watch logs for auto-pull activity with timeout
 timeout 90s sudo journalctl -u fasttrack -f -n 0 | while read -r line; do
     # Check for any auto-pull related activity
-    if echo "$line" | grep -qE "Auto-pull|Remote changes|fetch.*origin|Synchronizing"; then
+    if echo "$line" | grep -qE "From github.com.*fasttrack|FETCH_HEAD|Updating [a-f0-9]+\.\.[a-f0-9]+|Fast-forward|Remote changes detected|Code changes detected|Restarting service"; then
         echo "✅ FOUND IT!"
         echo ""
         echo "Auto-pull worker is active. Found this log entry:"

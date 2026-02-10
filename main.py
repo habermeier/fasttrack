@@ -16,6 +16,10 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import threading
 import time
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = FastAPI()
 limiter = Limiter(key_func=get_remote_address)
@@ -146,7 +150,7 @@ def auto_pull_worker():
                 subprocess.run(["git", "fetch", "origin", "master"], check=True)
                 res = subprocess.run(["git", "rev-list", "HEAD..origin/master", "--count"], capture_output=True, text=True)
                 if res.stdout.strip() != "0":
-                    print(f"[{datetime.now()}] Remote changes detected. Synchronizing...")
+                    logging.info("Remote changes detected. Synchronizing...")
 
                     # Get list of changed files
                     diff_result = subprocess.run(
@@ -159,7 +163,7 @@ def auto_pull_worker():
 
                     subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
 
-                    print(f"[{datetime.now()}] Changed files: {changed_files}")
+                    logging.info(f"Changed files: {changed_files}")
 
                     # Determine if only data files changed
                     data_only_files = {"telemetry.json", "chart.png", "server.log"}
@@ -167,20 +171,20 @@ def auto_pull_worker():
 
                     if non_data_changes:
                         # Code changed - restart server
-                        print(f"[{datetime.now()}] Code changes detected: {non_data_changes}")
-                        print(f"[{datetime.now()}] Restarting service...")
+                        logging.info(f"Code changes detected: {non_data_changes}")
+                        logging.info("Restarting service...")
                         subprocess.Popen(["sudo", "systemctl", "restart", "fasttrack"])
                         return  # Exit worker, service will restart with new code
                     else:
                         # Only data files changed - just regenerate chart
-                        print(f"[{datetime.now()}] Only data files changed. Regenerating chart...")
+                        logging.info("Only data files changed. Regenerating chart...")
                         if os.path.exists(DATA_FILE):
                             with open(DATA_FILE, "r") as f:
                                 data = json.load(f)
                             renderer.generate_chart(data, CHART_FILE)
-                            print(f"[{datetime.now()}] Chart regenerated.")
+                            logging.info("Chart regenerated.")
         except Exception as e:
-            print(f"Auto-pull worker error: {e}")
+            logging.error(f"Auto-pull worker error: {e}")
         time.sleep(60)
 
 @app.on_event("startup")

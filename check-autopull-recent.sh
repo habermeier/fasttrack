@@ -5,7 +5,7 @@ echo "🔍 Checking recent logs for auto-pull worker evidence..."
 echo ""
 
 # Check last 200 log lines for auto-pull activity
-FOUND=$(sudo journalctl -u fasttrack -n 200 --no-pager | grep -E "Auto-pull|Remote changes|fetch.*origin|Synchronizing" | tail -1)
+FOUND=$(sudo journalctl -u fasttrack -n 200 --no-pager | grep -E "From github.com.*fasttrack|FETCH_HEAD|Updating [a-f0-9]+\.\.[a-f0-9]+|Fast-forward|Remote changes detected|Code changes detected|Restarting service" | tail -1)
 
 if [ -n "$FOUND" ]; then
     echo "✅ FOUND IT!"
