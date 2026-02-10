@@ -123,14 +123,18 @@ def generate_chart(nested_data, output_path="chart.png"):
     ax3.axhline(y=220, color='blue', ls='-.', lw=4, alpha=0.5, label='Obesity Exit: 220')
     ax3.set_ylim(170, 240)
 
-    # Annotate Refeeds and Bridges
+    # Annotate Refeeds and Bridges with 1-hour wide markers (no text labels)
     for idx, row in refeed_events.iterrows():
-        ax1.axvline(x=row['timestamp'], color='salmon', lw=4, alpha=0.6, ls=':')
-        ax1.text(row['timestamp'], 158, row['cheat_snack'], rotation=90, verticalalignment='top', fontsize=10, fontweight='bold')
+        # 1-hour wide marker (30 min on each side)
+        start_time = row['timestamp'] - timedelta(minutes=30)
+        end_time = row['timestamp'] + timedelta(minutes=30)
+        ax1.axvspan(start_time, end_time, color='salmon', alpha=0.4, zorder=1)
 
     for _, row in bridge_events.iterrows():
-        ax1.axvline(x=row['timestamp'], color='lightgreen', lw=4, alpha=0.6, ls=':')
-        ax1.text(row['timestamp'], 158, row['keto_snack'], rotation=90, verticalalignment='top', fontsize=12, fontweight='bold')
+        # 1-hour wide marker (30 min on each side)
+        start_time = row['timestamp'] - timedelta(minutes=30)
+        end_time = row['timestamp'] + timedelta(minutes=30)
+        ax1.axvspan(start_time, end_time, color='lightgreen', alpha=0.4, zorder=1)
 
     plt.title("Master-View v28: FastTrack Dashboard Analytics", fontsize=60, fontweight='bold', pad=120)
     plt.savefig(output_path, dpi=320) 
