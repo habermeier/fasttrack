@@ -30,33 +30,37 @@ class CookieRotationMiddleware(BaseHTTPMiddleware):
     """Middleware to handle cookie rotation on every request."""
 
     async def dispatch(self, request: Request, call_next):
-        # Get current state
+        # Get current state BEFORE processing request
         cookie_value = request.cookies.get(COOKIE_NAME)
         latched_key = get_latched_key()
-
-        # Process the request
-        response = await call_next(request)
 
         # Determine if we should set/rotate cookie
         should_set_cookie = False
         new_key = None
 
         if not latched_key:
-            # No latch exists - create one and latch this device
+            # No latch exists - create one and latch this device BEFORE processing
             logging.info(f"No latch file found. Creating new latch for device.")
             new_key = generate_secure_key()
             save_latched_key(new_key)
             should_set_cookie = True
             logging.info(f"Latch created. Key file saved to {KEY_FILE}")
+            # Update request's cookie for this request so auth checks pass
+            request._cookies[COOKIE_NAME] = new_key
         elif cookie_value == latched_key:
             # Cookie matches - rotate to new key
             logging.debug(f"Cookie matches. Rotating key.")
             new_key = generate_secure_key()
             save_latched_key(new_key)
             should_set_cookie = True
+            # Update request's cookie for this request
+            request._cookies[COOKIE_NAME] = new_key
         # else: cookie doesn't match - don't send cookie
 
-        # Set cookie if needed
+        # Process the request (NOW the latch exists and cookie is set)
+        response = await call_next(request)
+
+        # Set cookie in response if needed
         if should_set_cookie and new_key:
             response.set_cookie(
                 key=COOKIE_NAME,
