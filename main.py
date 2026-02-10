@@ -357,7 +357,15 @@ async def get_pure_graph():
             renderer.generate_chart(data, CHART_FILE)
         else:
             raise HTTPException(status_code=404, detail="Chart not found")
-    return FileResponse(CHART_FILE)
+    # Disable caching - always fetch fresh chart
+    return FileResponse(
+        CHART_FILE,
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -371,7 +379,15 @@ async def get_chart():
             renderer.generate_chart(data, CHART_FILE)
         else:
             raise HTTPException(status_code=404, detail="Chart not found and no data available")
-    return FileResponse(CHART_FILE)
+    # Disable caching - always fetch fresh chart
+    return FileResponse(
+        CHART_FILE,
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn
