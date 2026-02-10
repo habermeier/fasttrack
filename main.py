@@ -32,30 +32,39 @@ class CookieRotationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Get current state BEFORE processing request
         cookie_value = request.cookies.get(COOKIE_NAME)
-        latched_key = get_latched_key()
+        key_ring = get_latched_keys()
 
         # Determine if we should set/rotate cookie
         should_set_cookie = False
         new_key = None
 
-        if not latched_key:
+        if not key_ring:
             # No latch exists - create one and latch this device BEFORE processing
-            logging.info(f"No latch file found. Creating new latch for device.")
+            logging.info("No key ring found. Creating initial key ring for device.")
             new_key = generate_secure_key()
             save_latched_key(new_key)
             should_set_cookie = True
-            logging.info(f"Latch created. Key file saved to {KEY_FILE}")
+            logging.info(f"Key ring created. First key saved to {KEY_FILE}")
             # Update request's cookie for this request so auth checks pass
             request._cookies[COOKIE_NAME] = new_key
-        elif cookie_value == latched_key:
-            # Cookie matches - rotate to new key
-            logging.debug(f"Cookie matches. Rotating key.")
+        elif not cookie_value:
+            # No cookie but ring exists - unauthorized device
+            cookie_prefix = "none"
+            logging.warning(f"Middleware: No cookie sent (key ring has {len(key_ring)} keys)")
+        elif cookie_value in key_ring:
+            # Cookie matches one of the keys - rotate to new key
+            key_index = key_ring.index(cookie_value)
+            cookie_prefix = cookie_value[:8]
+            logging.info(f"Middleware: Cookie {cookie_prefix}... matched key #{key_index}, rotating")
             new_key = generate_secure_key()
             save_latched_key(new_key)
             should_set_cookie = True
             # Update request's cookie for this request
             request._cookies[COOKIE_NAME] = new_key
-        # else: cookie doesn't match - don't send cookie
+        else:
+            # Cookie doesn't match any key in ring
+            cookie_prefix = cookie_value[:8] if cookie_value else "none"
+            logging.warning(f"Middleware: Cookie {cookie_prefix}... not in key ring (ring size: {len(key_ring)})")
 
         # Process the request (NOW the latch exists and cookie is set)
         response = await call_next(request)
@@ -90,20 +99,43 @@ def generate_secure_key():
     """Generate a cryptographically secure random 64-character hex token."""
     return secrets.token_hex(32)
 
-def get_latched_key():
-    """Read the latched key from disk. Returns None if file doesn't exist."""
+def get_latched_keys():
+    """Read the key ring from disk. Returns list of valid keys (newest first)."""
     if not os.path.exists(KEY_FILE):
-        return None
-    with open(KEY_FILE, "r") as f:
-        return f.read().strip()
+        return []
+    try:
+        with open(KEY_FILE, "r") as f:
+            data = json.load(f)
+            return data.get("keys", [])
+    except (json.JSONDecodeError, KeyError):
+        # Legacy format - single key as plain text
+        with open(KEY_FILE, "r") as f:
+            legacy_key = f.read().strip()
+            if legacy_key:
+                return [legacy_key]
+        return []
 
-def save_latched_key(key: str):
-    """Save the latched key to disk."""
+def save_latched_key(new_key: str):
+    """Save new key to the key ring, keeping last 5 keys."""
     try:
         os.makedirs(KEY_DIR, exist_ok=True)
+
+        # Get existing keys
+        existing_keys = get_latched_keys()
+
+        # Add new key at front, keep only last 5
+        key_ring = [new_key] + existing_keys
+        key_ring = key_ring[:5]  # Keep max 5 keys
+
+        # Save as JSON
+        data = {
+            "keys": key_ring,
+            "updated_at": datetime.utcnow().isoformat()
+        }
         with open(KEY_FILE, "w") as f:
-            f.write(key)
-        logging.info(f"Saved latch key to {KEY_FILE}")
+            json.dump(data, f, indent=2)
+
+        logging.info(f"Saved key to ring (ring size: {len(key_ring)})")
     except Exception as e:
         logging.error(f"Failed to save latch key: {e}")
         raise
@@ -111,14 +143,25 @@ def save_latched_key(key: str):
 def verify_auth(request: Request):
     """Verify that the request has a valid auth cookie."""
     cookie_value = request.cookies.get(COOKIE_NAME)
-    latched_key = get_latched_key()
+    key_ring = get_latched_keys()
 
-    if not latched_key:
+    if not key_ring:
         # No latch exists yet - deny (shouldn't happen with middleware)
+        logging.warning("Auth check: No key ring exists")
         raise HTTPException(status_code=403, detail="Unauthorized")
 
-    if cookie_value != latched_key:
+    if not cookie_value:
+        logging.warning(f"Auth check: Missing cookie (key ring has {len(key_ring)} keys)")
         raise HTTPException(status_code=403, detail="Unauthorized")
+
+    if cookie_value not in key_ring:
+        cookie_prefix = cookie_value[:8] if cookie_value else "none"
+        logging.warning(f"Auth check: Cookie {cookie_prefix}... not in key ring (ring size: {len(key_ring)})")
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    # Find which key matched
+    key_index = key_ring.index(cookie_value)
+    logging.info(f"Auth check: Cookie matched key #{key_index} in ring")
 
 def get_sillykey():
     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -324,9 +367,9 @@ async def get_latest():
 async def read_index(request: Request):
     # Entry page - requires auth
     cookie_value = request.cookies.get(COOKIE_NAME)
-    latched_key = get_latched_key()
+    key_ring = get_latched_keys()
 
-    if not latched_key or cookie_value != latched_key:
+    if not key_ring or not cookie_value or cookie_value not in key_ring:
         # Not authorized - redirect to read-only graph page
         return RedirectResponse(url="/graph", status_code=302)
 
@@ -336,9 +379,9 @@ async def read_index(request: Request):
 async def read_meal(request: Request):
     # Entry page - requires auth
     cookie_value = request.cookies.get(COOKIE_NAME)
-    latched_key = get_latched_key()
+    key_ring = get_latched_keys()
 
-    if not latched_key or cookie_value != latched_key:
+    if not key_ring or not cookie_value or cookie_value not in key_ring:
         # Not authorized - redirect to read-only graph page
         return RedirectResponse(url="/graph", status_code=302)
 
