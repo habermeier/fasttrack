@@ -404,7 +404,7 @@
             <div class="field-group">
                 <label class="field-label">Glucose</label>
                 <div class="input-wrapper">
-                    <input type="number" id="glucose" step="0.1" inputmode="decimal" placeholder="0.0">
+                    <input type="number" id="glucose" step="1" inputmode="numeric" placeholder="0">
                     <span class="unit">mg/dL</span>
                 </div>
                 <div class="ruler-picker" id="ruler-glucose">
@@ -603,7 +603,7 @@
 
                 // Initialize Rulers
                 initRuler('ruler-ketones', 0, 8, 0.1, initialKetones, 'ketones');
-                initRuler('ruler-glucose', 40, 200, 0.1, initialGlucose, 'glucose');
+                initRuler('ruler-glucose', 40, 200, 1, initialGlucose, 'glucose');
                 initRuler('ruler-body_weight', 150, 300, 0.1, initialWeight, 'body_weight');
                 initRuler('ruler-total_fat', 5, 50, 0.1, initialTotalFat, 'total_fat');
                 initRuler('ruler-visceral_fat', 1, 30, 0.1, initialVisceralFat, 'visceral_fat');
