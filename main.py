@@ -138,6 +138,7 @@ def run_updates(new_data, message: str):
 
 def auto_pull_worker():
     """Background task to pull remote changes and refresh chart."""
+    # Test comment: verifying auto-pull detection works
     while True:
         try:
             with LOCK:
