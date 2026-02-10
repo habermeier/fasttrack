@@ -259,7 +259,7 @@ async def startup_event():
 def update_data(new_data, message: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(run_updates, new_data, message)
 
-@app.get("/api/telemetry")
+@app.api_route("/api/telemetry", methods=["GET", "POST"])
 @limiter.limit("20/5 minutes")
 async def get_telemetry(
     request: Request,
@@ -325,14 +325,22 @@ async def get_telemetry(
         return {"status": "success", "id": entry["id"]}
 
     elif action == "batch":
-        if not payload:
+        # Support both query param (legacy) and POST body (new)
+        if request.method == "POST":
+            try:
+                new_data = await request.json()
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid JSON body")
+        elif payload:
+            try:
+                new_data = json.loads(payload)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid JSON payload")
+        else:
             raise HTTPException(status_code=400, detail="Missing payload")
-        try:
-            new_data = json.loads(payload)
-            update_data(new_data, "batch sync", background_tasks)
-            return {"status": "success"}
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+        update_data(new_data, "batch sync", background_tasks)
+        return {"status": "success"}
 
     else:
         raise HTTPException(status_code=400, detail="Invalid action")

@@ -613,6 +613,37 @@
                 console.error("Initialization failed", err);
                 showStatus("Error loading latest data", true);
             }
+
+            // Auto-save form to localStorage
+            setupAutoSave();
+        }
+
+        function setupAutoSave() {
+            const fields = ['ketones', 'glucose', 'body_weight', 'total_fat', 'visceral_fat', 'discomfort', 'discomfort_notes', 'notes'];
+
+            // Restore saved values
+            fields.forEach(field => {
+                const saved = localStorage.getItem(`form_${field}`);
+                if (saved !== null) {
+                    const el = document.getElementById(field);
+                    if (el) el.value = saved;
+                }
+            });
+
+            // Auto-save on change
+            fields.forEach(field => {
+                const el = document.getElementById(field);
+                if (el) {
+                    el.addEventListener('input', () => {
+                        localStorage.setItem(`form_${field}`, el.value);
+                    });
+                }
+            });
+        }
+
+        function clearSavedForm() {
+            const fields = ['ketones', 'glucose', 'body_weight', 'total_fat', 'visceral_fat', 'discomfort', 'discomfort_notes', 'notes'];
+            fields.forEach(field => localStorage.removeItem(`form_${field}`));
         }
 
         function showStatus(msg, isError = false) {
@@ -679,10 +710,18 @@
                     entries: preparedEntries
                 });
 
-                const syncRes = await fetch(`/api/telemetry?action=batch&sillykey=${currentSillyKey}&payload=${encodeURIComponent(jsonStringify(currentData))}`);
+                // Use POST to avoid URL length limits with notes
+                const syncRes = await fetch(`/api/telemetry?action=batch&sillykey=${currentSillyKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(currentData)
+                });
 
                 if (syncRes.ok) {
                     showStatus(isMeal ? "Meal logged!" : "Data submitted!");
+                    clearSavedForm(); // Clear saved form on success
                 } else {
                     const err = await syncRes.json();
                     showStatus(err.detail || "Submission failed", true);
