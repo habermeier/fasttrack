@@ -9,11 +9,13 @@ import secrets
 from datetime import datetime
 import uuid
 import subprocess
-from renderer import generate_chart
+import renderer
+import importlib
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import threading
+import time
 
 app = FastAPI()
 limiter = Limiter(key_func=get_remote_address)
@@ -113,18 +115,80 @@ def verify_sillykey(sillykey: str):
 
 def git_sync(message: str):
     try:
+        # Ensure we are up to date before pushing
+        subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
         subprocess.run(["git", "add", DATA_FILE], check=True)
-        subprocess.run(["git", "commit", "-m", f"telemetry: {message}"], check=True)
-        subprocess.run(["git", "push", "origin", "master"], check=True)
+        # Only commit if there are changes
+        status = subprocess.run(["git", "status", "--porcelain", DATA_FILE], capture_output=True, text=True)
+        if status.stdout.strip():
+            subprocess.run(["git", "commit", "-m", f"telemetry: {message}"], check=True)
+            subprocess.run(["git", "push", "origin", "master"], check=True)
     except Exception as e:
         print(f"Git sync failed: {e}")
 
-def update_data(new_data, message: str, background_tasks: BackgroundTasks):
+def run_updates(new_data, message: str):
     with LOCK:
         with open(DATA_FILE, "w") as f:
             json.dump(new_data, f, indent=4)
-        generate_chart(new_data, CHART_FILE)
-    background_tasks.add_task(git_sync, message)
+        try:
+            renderer.generate_chart(new_data, CHART_FILE)
+        except Exception as e:
+            print(f"Chart generation failed: {e}")
+        git_sync(message)
+
+def auto_pull_worker():
+    """Background task to pull remote changes and refresh chart."""
+    while True:
+        try:
+            with LOCK:
+                # Check for remote changes
+                subprocess.run(["git", "fetch", "origin", "master"], check=True)
+                res = subprocess.run(["git", "rev-list", "HEAD..origin/master", "--count"], capture_output=True, text=True)
+                if res.stdout.strip() != "0":
+                    print(f"[{datetime.now()}] Remote changes detected. Synchronizing...")
+
+                    # Track hashes of important files
+                    files_to_watch = ["telemetry.json", "renderer.py"]
+                    hashes_before = {}
+                    for f_path in files_to_watch:
+                        if os.path.exists(f_path):
+                            with open(f_path, "rb") as f:
+                                hashes_before[f_path] = hashlib.md5(f.read()).hexdigest()
+
+                    subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
+
+                    # Check hashes after pull
+                    changed = []
+                    for f_path in files_to_watch:
+                        if os.path.exists(f_path):
+                            with open(f_path, "rb") as f:
+                                h_after = hashlib.md5(f.read()).hexdigest()
+                                if h_after != hashes_before.get(f_path):
+                                    changed.append(f_path)
+
+                    if "renderer.py" in changed:
+                        print(f"[{datetime.now()}] renderer.py changed. Hot-reloading module...")
+                        importlib.reload(renderer)
+
+                    if "telemetry.json" in changed or "renderer.py" in changed:
+                        if os.path.exists(DATA_FILE):
+                            with open(DATA_FILE, "r") as f:
+                                data = json.load(f)
+                            renderer.generate_chart(data, CHART_FILE)
+                            print(f"[{datetime.now()}] Chart regenerated after updates.")
+                    else:
+                        print(f"[{datetime.now()}] Relevant files unchanged. Skipping updates.")
+        except Exception as e:
+            print(f"Auto-pull worker error: {e}")
+        time.sleep(60)
+
+@app.on_event("startup")
+async def startup_event():
+    thread = threading.Thread(target=auto_pull_worker, daemon=True)
+    thread.start()
+
+def update_data(new_data, message: str, background_tasks: BackgroundTasks):
+    background_tasks.add_task(run_updates, new_data, message)
 
 @app.get("/api/telemetry")
 @limiter.limit("20/5 minutes")
@@ -258,6 +322,17 @@ async def read_meal(request: Request):
 async def read_graph():
     return FileResponse("static/graph.html")
 
+@app.get("/api/graph")
+async def get_pure_graph():
+    if not os.path.exists(CHART_FILE):
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, "r") as f:
+                data = json.load(f)
+            renderer.generate_chart(data, CHART_FILE)
+        else:
+            raise HTTPException(status_code=404, detail="Chart not found")
+    return FileResponse(CHART_FILE)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/api/chart")
@@ -267,11 +342,11 @@ async def get_chart():
         if os.path.exists(DATA_FILE):
             with open(DATA_FILE, "r") as f:
                 data = json.load(f)
-            generate_chart(data, CHART_FILE)
+            renderer.generate_chart(data, CHART_FILE)
         else:
             raise HTTPException(status_code=404, detail="Chart not found and no data available")
     return FileResponse(CHART_FILE)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=80)
