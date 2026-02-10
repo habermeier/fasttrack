@@ -147,43 +147,37 @@ def auto_pull_worker():
                 if res.stdout.strip() != "0":
                     print(f"[{datetime.now()}] Remote changes detected. Synchronizing...")
 
-                    # Track hashes of important files
-                    files_to_watch = ["telemetry.json", "renderer.py", "main.py"]
-                    hashes_before = {}
-                    for f_path in files_to_watch:
-                        if os.path.exists(f_path):
-                            with open(f_path, "rb") as f:
-                                hashes_before[f_path] = hashlib.md5(f.read()).hexdigest()
+                    # Get list of changed files
+                    diff_result = subprocess.run(
+                        ["git", "diff", "--name-only", "HEAD", "origin/master"],
+                        capture_output=True,
+                        text=True,
+                        check=True
+                    )
+                    changed_files = set(diff_result.stdout.strip().split('\n'))
 
                     subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
 
-                    # Check hashes after pull
-                    changed = []
-                    for f_path in files_to_watch:
-                        if os.path.exists(f_path):
-                            with open(f_path, "rb") as f:
-                                h_after = hashlib.md5(f.read()).hexdigest()
-                                if h_after != hashes_before.get(f_path):
-                                    changed.append(f_path)
+                    print(f"[{datetime.now()}] Changed files: {changed_files}")
 
-                    # If main.py changed, restart the service
-                    if "main.py" in changed:
-                        print(f"[{datetime.now()}] main.py changed. Restarting service...")
+                    # Determine if only data files changed
+                    data_only_files = {"telemetry.json", "chart.png", "server.log"}
+                    non_data_changes = changed_files - data_only_files
+
+                    if non_data_changes:
+                        # Code changed - restart server
+                        print(f"[{datetime.now()}] Code changes detected: {non_data_changes}")
+                        print(f"[{datetime.now()}] Restarting service...")
                         subprocess.Popen(["sudo", "systemctl", "restart", "fasttrack"])
                         return  # Exit worker, service will restart with new code
-
-                    if "renderer.py" in changed:
-                        print(f"[{datetime.now()}] renderer.py changed. Hot-reloading module...")
-                        importlib.reload(renderer)
-
-                    if "telemetry.json" in changed or "renderer.py" in changed:
+                    else:
+                        # Only data files changed - just regenerate chart
+                        print(f"[{datetime.now()}] Only data files changed. Regenerating chart...")
                         if os.path.exists(DATA_FILE):
                             with open(DATA_FILE, "r") as f:
                                 data = json.load(f)
                             renderer.generate_chart(data, CHART_FILE)
-                            print(f"[{datetime.now()}] Chart regenerated after updates.")
-                    else:
-                        print(f"[{datetime.now()}] Relevant files unchanged. Skipping updates.")
+                            print(f"[{datetime.now()}] Chart regenerated.")
         except Exception as e:
             print(f"Auto-pull worker error: {e}")
         time.sleep(60)

@@ -49,9 +49,9 @@ sudo journalctl -u fasttrack -n 100
 
 The server automatically:
 - ✅ **Pulls git changes every 60 seconds**
-- ✅ **Hot-reloads `renderer.py`** when it changes
-- ✅ **Auto-restarts when `main.py` changes**
-- ✅ **Regenerates charts** when data or renderer changes
+- ✅ **Auto-restarts for ANY code changes** (main.py, renderer.py, HTML, etc.)
+- ✅ **Skips restart if ONLY data changed** (telemetry.json, chart.png)
+- ✅ **Regenerates charts** when data changes
 - ✅ **Restarts on crash** (via systemd)
 
 ## Manual Deployment
