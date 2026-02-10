@@ -182,8 +182,17 @@ def auto_pull_worker():
                     non_data_changes = changed_files - data_only_files
 
                     if non_data_changes:
-                        # Code changed - restart server
+                        # Code changed - regenerate chart before restart
                         logging.info(f"Code changes detected: {non_data_changes}")
+
+                        # Always regenerate chart on code changes
+                        if os.path.exists(DATA_FILE):
+                            logging.info("Regenerating chart with new code...")
+                            with open(DATA_FILE, "r") as f:
+                                data = json.load(f)
+                            renderer.generate_chart(data, CHART_FILE)
+                            logging.info("Chart regenerated with latest code.")
+
                         logging.info("Restarting service...")
                         subprocess.Popen(["sudo", "systemctl", "restart", "fasttrack"])
                         return  # Exit worker, service will restart with new code
