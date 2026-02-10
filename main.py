@@ -43,11 +43,14 @@ class CookieRotationMiddleware(BaseHTTPMiddleware):
 
         if not latched_key:
             # No latch exists - create one and latch this device
+            logging.info(f"No latch file found. Creating new latch for device.")
             new_key = generate_secure_key()
             save_latched_key(new_key)
             should_set_cookie = True
+            logging.info(f"Latch created. Key file saved to {KEY_FILE}")
         elif cookie_value == latched_key:
             # Cookie matches - rotate to new key
+            logging.debug(f"Cookie matches. Rotating key.")
             new_key = generate_secure_key()
             save_latched_key(new_key)
             should_set_cookie = True
@@ -92,9 +95,14 @@ def get_latched_key():
 
 def save_latched_key(key: str):
     """Save the latched key to disk."""
-    os.makedirs(KEY_DIR, exist_ok=True)
-    with open(KEY_FILE, "w") as f:
-        f.write(key)
+    try:
+        os.makedirs(KEY_DIR, exist_ok=True)
+        with open(KEY_FILE, "w") as f:
+            f.write(key)
+        logging.info(f"Saved latch key to {KEY_FILE}")
+    except Exception as e:
+        logging.error(f"Failed to save latch key: {e}")
+        raise
 
 def verify_auth(request: Request):
     """Verify that the request has a valid auth cookie."""
