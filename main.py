@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Request, HTTPException, Query, BackgroundTasks
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 import json
 import os
 import hashlib
+import secrets
 from datetime import datetime
 import uuid
 import subprocess
@@ -18,10 +20,87 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+class CookieRotationMiddleware(BaseHTTPMiddleware):
+    """Middleware to handle cookie rotation on every request."""
+
+    async def dispatch(self, request: Request, call_next):
+        # Get current state
+        cookie_value = request.cookies.get(COOKIE_NAME)
+        latched_key = get_latched_key()
+
+        # Process the request
+        response = await call_next(request)
+
+        # Determine if we should set/rotate cookie
+        should_set_cookie = False
+        new_key = None
+
+        if not latched_key:
+            # No latch exists - create one and latch this device
+            new_key = generate_secure_key()
+            save_latched_key(new_key)
+            should_set_cookie = True
+        elif cookie_value == latched_key:
+            # Cookie matches - rotate to new key
+            new_key = generate_secure_key()
+            save_latched_key(new_key)
+            should_set_cookie = True
+        # else: cookie doesn't match - don't send cookie
+
+        # Set cookie if needed
+        if should_set_cookie and new_key:
+            response.set_cookie(
+                key=COOKIE_NAME,
+                value=new_key,
+                httponly=True,
+                max_age=COOKIE_MAX_AGE,
+                samesite="strict",
+                secure=False  # Set to True if using HTTPS
+            )
+
+        return response
+
+app.add_middleware(CookieRotationMiddleware)
+
 DATA_FILE = "telemetry.json"
 CHART_FILE = "chart.png"
 SALT = "SALT"
 LOCK = threading.Lock()
+
+# Cookie-based authentication
+KEY_DIR = "key"
+KEY_FILE = os.path.join(KEY_DIR, "latched")
+COOKIE_NAME = "auth_token"
+COOKIE_MAX_AGE = 365 * 24 * 60 * 60  # 1 year in seconds
+
+def generate_secure_key():
+    """Generate a cryptographically secure random 64-character hex token."""
+    return secrets.token_hex(32)
+
+def get_latched_key():
+    """Read the latched key from disk. Returns None if file doesn't exist."""
+    if not os.path.exists(KEY_FILE):
+        return None
+    with open(KEY_FILE, "r") as f:
+        return f.read().strip()
+
+def save_latched_key(key: str):
+    """Save the latched key to disk."""
+    os.makedirs(KEY_DIR, exist_ok=True)
+    with open(KEY_FILE, "w") as f:
+        f.write(key)
+
+def verify_auth(request: Request):
+    """Verify that the request has a valid auth cookie."""
+    cookie_value = request.cookies.get(COOKIE_NAME)
+    latched_key = get_latched_key()
+
+    if not latched_key:
+        # No latch exists yet - deny (shouldn't happen with middleware)
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    if cookie_value != latched_key:
+        raise HTTPException(status_code=403, detail="Unauthorized")
 
 def get_sillykey():
     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -70,7 +149,7 @@ async def get_telemetry(
             return json.load(f)
 
     # WRITE operations (Auth required)
-    verify_sillykey(sillykey)
+    verify_auth(request)
 
     if action == "add":
         if not key or value is None:
@@ -152,11 +231,27 @@ async def get_latest():
     return latest
 
 @app.get("/")
-async def read_index():
+async def read_index(request: Request):
+    # Entry page - requires auth
+    cookie_value = request.cookies.get(COOKIE_NAME)
+    latched_key = get_latched_key()
+
+    if not latched_key or cookie_value != latched_key:
+        # Not authorized - redirect to read-only graph page
+        return RedirectResponse(url="/graph", status_code=302)
+
     return FileResponse("static/index.html")
 
 @app.get("/meal")
-async def read_meal():
+async def read_meal(request: Request):
+    # Entry page - requires auth
+    cookie_value = request.cookies.get(COOKIE_NAME)
+    latched_key = get_latched_key()
+
+    if not latched_key or cookie_value != latched_key:
+        # Not authorized - redirect to read-only graph page
+        return RedirectResponse(url="/graph", status_code=302)
+
     return FileResponse("static/meal.html")
 
 @app.get("/graph")

@@ -16,6 +16,9 @@ __pycache__/
 chart.png
 server.log
 
+# Security
+key/
+
 # IDEs
 .vscode/
 .idea/
