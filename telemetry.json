@@ -349,5 +349,57 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-02-09T07:49:55.594Z",
+        "entries": [
+            {
+                "id": "1fb4c6b1-bef7-4183-a013d849d125",
+                "key": "cheat_snack",
+                "value": "Super Bowl Sunday Cheat Day.  A few slices of baguette, some 95% chocolate, some keto friendly peanutbutter cups, 2 small chicken wings, a few small other chocolates, butter, a few potato chips, lots of dip, 1 head of cauliflower with some kind of cheesy sauce, some brussel sprouts, some keto chocolate discs, cesar salad.\n\nOver all -- a lot of food, much of it keto friendly, but some ... not.",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-09T16:34:02.681Z",
+        "entries": [
+            {
+                "id": "be48a143-fd04-47a9-b373d5d1f79c",
+                "key": "ketones",
+                "value": 4.8,
+                "simulated": false
+            },
+            {
+                "id": "2c0b6937-7699-44e6-bb2093de1d07",
+                "key": "glucose",
+                "value": 135,
+                "simulated": false
+            },
+            {
+                "id": "7e831740-57e3-43bc-b825553fbdc7",
+                "key": "body_weight",
+                "value": 219,
+                "simulated": false
+            },
+            {
+                "id": "8bb66c4e-0d1e-4655-b44abbf4db20",
+                "key": "total_fat",
+                "value": 27.7,
+                "simulated": false
+            },
+            {
+                "id": "d9c69e18-cd16-43a6-91f298e7fa32",
+                "key": "visceral_fat",
+                "value": 5,
+                "simulated": false
+            },
+            {
+                "id": "09d2cd40-1bdb-4190-bd3125e7352d",
+                "key": "discomfort",
+                "value": 1,
+                "simulated": false
+            }
+        ]
     }
 ]

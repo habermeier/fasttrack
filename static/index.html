@@ -280,6 +280,81 @@
             animation: pulse 1.5s infinite ease-in-out;
         }
 
+        /* Ruler Picker Styles */
+        .ruler-picker {
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 10px 0;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            touch-action: pan-x;
+        }
+
+        .ruler-container {
+            display: flex;
+            align-items: flex-end;
+            padding: 0 50%;
+            cursor: grab;
+            overflow-x: scroll;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE 10+ */
+            scroll-snap-type: x proximity;
+        }
+
+        .ruler-container::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        .ruler {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding-bottom: 5px;
+        }
+
+        .ruler-line {
+            width: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .ruler-line.major {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.5);
+            position: relative;
+        }
+
+        .ruler-line.major::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .ruler-line.minor {
+            height: 15px;
+        }
+
+        .ruler-marker {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 40px;
+            background: var(--secondary);
+            border-radius: 2px;
+            z-index: 2;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(253, 160, 133, 0.5);
+        }
+
         /* Responsive spacing */
         @media (max-width: 400px) {
             .dashboard-card {
@@ -314,13 +389,21 @@
                 <div class="ketone-hi-toggle">
                     <button type="button" class="toggle-btn" id="hi-toggle">HI (Max)</button>
                 </div>
+                <div class="ruler-picker" id="ruler-ketones">
+                    <div class="ruler-marker"></div>
+                    <div class="ruler-container"></div>
+                </div>
             </div>
 
             <div class="field-group">
                 <label class="field-label">Glucose</label>
                 <div class="input-wrapper">
-                    <input type="number" id="glucose" inputmode="numeric" placeholder="0">
+                    <input type="number" id="glucose" step="0.1" inputmode="decimal" placeholder="0.0">
                     <span class="unit">mg/dL</span>
+                </div>
+                <div class="ruler-picker" id="ruler-glucose">
+                    <div class="ruler-marker"></div>
+                    <div class="ruler-container"></div>
                 </div>
             </div>
 
@@ -329,6 +412,10 @@
                 <div class="input-wrapper">
                     <input type="number" id="body_weight" step="0.1" inputmode="decimal" placeholder="000.0">
                     <span class="unit">lbs</span>
+                </div>
+                <div class="ruler-picker" id="ruler-body_weight">
+                    <div class="ruler-marker"></div>
+                    <div class="ruler-container"></div>
                 </div>
             </div>
 
@@ -339,11 +426,19 @@
                         <input type="number" id="total_fat" step="0.1" inputmode="decimal" placeholder="0.0">
                         <span class="unit">%</span>
                     </div>
+                    <div class="ruler-picker" id="ruler-total_fat">
+                        <div class="ruler-marker"></div>
+                        <div class="ruler-container"></div>
+                    </div>
                 </div>
                 <div>
                     <label class="field-label">Visceral Fat</label>
                     <div class="input-wrapper">
-                        <input type="number" id="visceral_fat" inputmode="numeric" placeholder="0">
+                        <input type="number" id="visceral_fat" step="0.1" inputmode="decimal" placeholder="0.0">
+                    </div>
+                    <div class="ruler-picker" id="ruler-visceral_fat">
+                        <div class="ruler-marker"></div>
+                        <div class="ruler-container"></div>
                     </div>
                 </div>
             </div>
@@ -351,7 +446,11 @@
             <div class="field-group">
                 <label class="field-label">Discomfort Level (0-10)</label>
                 <div class="input-wrapper">
-                    <input type="number" id="discomfort" min="0" max="10" inputmode="numeric" placeholder="0">
+                    <input type="number" id="discomfort" min="0" max="10" step="0.1" inputmode="decimal" placeholder="0.0">
+                </div>
+                <div class="ruler-picker" id="ruler-discomfort">
+                    <div class="ruler-marker"></div>
+                    <div class="ruler-container"></div>
                 </div>
             </div>
 
@@ -412,6 +511,58 @@
         });
 
         // Load Config and Latest Data
+        function generateUUID() {
+            return ([1e7]+-1e3+-4e3+-8e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        // Ruler Picker Logic
+        function initRuler(id, min, max, step, initialValue, inputId) {
+            const container = document.querySelector(`#${id} .ruler-container`);
+            const input = document.getElementById(inputId);
+            const ruler = document.createElement('div');
+            ruler.className = 'ruler';
+            
+            const itemWidth = 12; // 10px gap + 2px line
+            
+            for (let i = min; i <= max; i = parseFloat((i + step).toFixed(1))) {
+                const line = document.createElement('div');
+                const isMajor = Number.isInteger(i) || (i * 10) % 10 === 0;
+                line.className = `ruler-line ${isMajor ? 'major' : 'minor'}`;
+                if (isMajor) line.setAttribute('data-value', i);
+                ruler.appendChild(line);
+            }
+            
+            container.appendChild(ruler);
+            
+            const scrollToValue = (val) => {
+                const index = (val - min) / step;
+                container.scrollLeft = index * itemWidth;
+            };
+
+            let isScrolling = false;
+            container.addEventListener('scroll', () => {
+                if (isScrolling) return;
+                const index = Math.round(container.scrollLeft / itemWidth);
+                const val = parseFloat((min + index * step).toFixed(1));
+                if (input.value != val) {
+                    input.value = val;
+                }
+            });
+
+            input.addEventListener('input', () => {
+                isScrolling = true;
+                scrollToValue(parseFloat(input.value) || min);
+                setTimeout(() => { isScrolling = false; }, 100);
+            });
+
+            // Initial position
+            setTimeout(() => {
+                scrollToValue(initialValue || min);
+            }, 100);
+        }
+
         async function init() {
             try {
                 const configRes = await fetch('/api/config');
@@ -422,6 +573,13 @@
                 const latest = await latestRes.json();
 
                 // Pre-populate fields
+                const initialKetones = (latest.ketones && latest.ketones < 8) ? latest.ketones : 0.5;
+                const initialGlucose = latest.glucose || 90;
+                const initialWeight = latest.body_weight || 220;
+                const initialTotalFat = latest.total_fat || 25;
+                const initialVisceralFat = latest.visceral_fat || 10;
+                const initialDiscomfort = latest.discomfort || 0;
+
                 if (latest.ketones) {
                     if (latest.ketones >= 8) {
                         ketoneInput.value = "HI";
@@ -431,11 +589,20 @@
                         ketoneInput.value = latest.ketones;
                     }
                 }
+                
                 if (latest.glucose) document.getElementById('glucose').value = latest.glucose;
                 if (latest.body_weight) document.getElementById('body_weight').value = latest.body_weight;
                 if (latest.total_fat) document.getElementById('total_fat').value = latest.total_fat;
                 if (latest.visceral_fat) document.getElementById('visceral_fat').value = latest.visceral_fat;
                 if (latest.discomfort) document.getElementById('discomfort').value = latest.discomfort;
+
+                // Initialize Rulers
+                initRuler('ruler-ketones', 0, 8, 0.1, initialKetones, 'ketones');
+                initRuler('ruler-glucose', 40, 200, 0.1, initialGlucose, 'glucose');
+                initRuler('ruler-body_weight', 150, 300, 0.1, initialWeight, 'body_weight');
+                initRuler('ruler-total_fat', 5, 50, 0.1, initialTotalFat, 'total_fat');
+                initRuler('ruler-visceral_fat', 1, 30, 0.1, initialVisceralFat, 'visceral_fat');
+                initRuler('ruler-discomfort', 0, 10, 0.1, initialDiscomfort, 'discomfort');
 
             } catch (err) {
                 console.error("Initialization failed", err);
@@ -466,7 +633,7 @@
                 const weightVal = parseFloat(document.getElementById('body_weight').value);
                 const totalFatVal = parseFloat(document.getElementById('total_fat').value);
                 const visceralFatVal = parseFloat(document.getElementById('visceral_fat').value);
-                const discomfortVal = parseInt(document.getElementById('discomfort').value);
+                const discomfortVal = parseFloat(document.getElementById('discomfort').value);
                 const discomfortNotes = document.getElementById('discomfort_notes').value;
                 const notes = document.getElementById('notes').value;
 
@@ -496,7 +663,7 @@
 
                 // Create individual entry objects with UUIDs
                 const preparedEntries = entries.map(e => ({
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     key: e.key,
                     value: e.value,
                     simulated: false
