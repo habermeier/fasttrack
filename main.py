@@ -148,7 +148,7 @@ def auto_pull_worker():
                     print(f"[{datetime.now()}] Remote changes detected. Synchronizing...")
 
                     # Track hashes of important files
-                    files_to_watch = ["telemetry.json", "renderer.py"]
+                    files_to_watch = ["telemetry.json", "renderer.py", "main.py"]
                     hashes_before = {}
                     for f_path in files_to_watch:
                         if os.path.exists(f_path):
@@ -165,6 +165,12 @@ def auto_pull_worker():
                                 h_after = hashlib.md5(f.read()).hexdigest()
                                 if h_after != hashes_before.get(f_path):
                                     changed.append(f_path)
+
+                    # If main.py changed, restart the service
+                    if "main.py" in changed:
+                        print(f"[{datetime.now()}] main.py changed. Restarting service...")
+                        subprocess.Popen(["sudo", "systemctl", "restart", "fasttrack"])
+                        return  # Exit worker, service will restart with new code
 
                     if "renderer.py" in changed:
                         print(f"[{datetime.now()}] renderer.py changed. Hot-reloading module...")

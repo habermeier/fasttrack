@@ -1,0 +1,15 @@
+[Unit]
+Description=FastTrack Health Tracker
+After=network.target
+
+[Service]
+Type=simple
+User=fasttrack
+WorkingDirectory=/home/fasttrack/app
+Environment="PATH=/home/fasttrack/app/venv/bin"
+ExecStart=/home/fasttrack/app/venv/bin/python3 /home/fasttrack/app/main.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
