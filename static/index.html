@@ -428,6 +428,18 @@
 
             <div class="field-group">
                 <div class="field-header">
+                    <label class="field-label">Water %</label>
+                    <span class="field-value" id="value-water_percent">60.0 <span class="unit">%</span></span>
+                </div>
+                <input type="number" id="water_percent" step="0.1" inputmode="decimal">
+                <div class="ruler-picker" id="ruler-water_percent">
+                    <div class="ruler-marker"></div>
+                    <div class="ruler-container"></div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-header">
                     <label class="field-label">Discomfort Level</label>
                     <span class="field-value" id="value-discomfort">0.0 / 10</span>
                 </div>
@@ -608,6 +620,11 @@
                 initRuler('ruler-body_weight', 150, 300, 0.1, initialWeight, 'body_weight', 'value-body_weight', 'lbs');
                 initRuler('ruler-total_fat', 5, 50, 0.1, initialTotalFat, 'total_fat', 'value-total_fat', '%');
                 initRuler('ruler-visceral_fat', 1, 30, 0.1, initialVisceralFat, 'visceral_fat', 'value-visceral_fat', '');
+
+                const initialWaterPercent = latest.water_percent || 60;
+                if (latest.water_percent) document.getElementById('water_percent').value = latest.water_percent;
+                initRuler('ruler-water_percent', 45, 75, 0.1, initialWaterPercent, 'water_percent', 'value-water_percent', '%');
+
                 initRuler('ruler-discomfort', 0, 10, 0.1, initialDiscomfort, 'discomfort', 'value-discomfort', '');
 
             } catch (err) {
@@ -620,7 +637,7 @@
         }
 
         function setupAutoSave() {
-            const fields = ['ketones', 'glucose', 'body_weight', 'total_fat', 'visceral_fat', 'discomfort', 'discomfort_notes', 'notes'];
+            const fields = ['ketones', 'glucose', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'discomfort', 'discomfort_notes', 'notes'];
 
             // Restore saved values
             fields.forEach(field => {
@@ -643,7 +660,7 @@
         }
 
         function clearSavedForm() {
-            const fields = ['ketones', 'glucose', 'body_weight', 'total_fat', 'visceral_fat', 'discomfort', 'discomfort_notes', 'notes'];
+            const fields = ['ketones', 'glucose', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'discomfort', 'discomfort_notes', 'notes'];
             fields.forEach(field => localStorage.removeItem(`form_${field}`));
         }
 
@@ -670,6 +687,7 @@
                 const weightVal = parseFloat(document.getElementById('body_weight').value);
                 const totalFatVal = parseFloat(document.getElementById('total_fat').value);
                 const visceralFatVal = parseFloat(document.getElementById('visceral_fat').value);
+                const waterPercentVal = parseFloat(document.getElementById('water_percent').value);
                 const discomfortVal = parseFloat(document.getElementById('discomfort').value);
                 const discomfortNotes = document.getElementById('discomfort_notes').value;
                 const notes = document.getElementById('notes').value;
@@ -679,6 +697,7 @@
                 if (!isNaN(weightVal)) entries.push({ key: 'body_weight', value: weightVal });
                 if (!isNaN(totalFatVal)) entries.push({ key: 'total_fat', value: totalFatVal });
                 if (!isNaN(visceralFatVal)) entries.push({ key: 'visceral_fat', value: visceralFatVal });
+                if (!isNaN(waterPercentVal)) entries.push({ key: 'water_percent', value: waterPercentVal });
                 if (!isNaN(discomfortVal)) entries.push({ key: 'discomfort', value: discomfortVal });
                 if (discomfortNotes) entries.push({ key: 'discomfort_notes', value: discomfortNotes });
 
