@@ -110,55 +110,32 @@
         }
 
         .field-group {
-            margin-bottom: 25px;
+            margin-bottom: 16px;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
         }
 
         .field-label {
-            display: block;
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-dim);
-            margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
+        .field-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
         }
 
         input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 15px 20px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 1.2rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--secondary);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.2);
-        }
-
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.2);
-        }
-
-        .unit {
-            position: absolute;
-            right: 20px;
-            font-size: 0.9rem;
-            color: var(--text-dim);
-            pointer-events: none;
+            display: none;
         }
 
         textarea {
@@ -184,7 +161,7 @@
         .ketone-hi-toggle {
             display: flex;
             align-items: center;
-            margin-top: 10px;
+            margin-top: 8px;
             gap: 10px;
         }
 
@@ -288,7 +265,7 @@
 
         /* Ruler Picker Styles */
         .ruler-picker {
-            margin-top: 10px;
+            height: 60px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             padding: 10px 0;
@@ -387,14 +364,14 @@
     <main class="dashboard-card">
         <form id="entry-form">
             <div class="field-group">
-                <label class="field-label">Ketones</label>
-                <div class="input-wrapper">
-                    <input type="text" id="ketones" inputmode="decimal" placeholder="0.0">
-                    <span class="unit">mmol/L</span>
+                <div class="field-header">
+                    <label class="field-label">Ketones</label>
+                    <span class="field-value" id="value-ketones">0.0 mmol/L</span>
                 </div>
                 <div class="ketone-hi-toggle">
                     <button type="button" class="toggle-btn" id="hi-toggle">HI (Max)</button>
                 </div>
+                <input type="text" id="ketones" inputmode="decimal">
                 <div class="ruler-picker" id="ruler-ketones">
                     <div class="ruler-marker"></div>
                     <div class="ruler-container"></div>
@@ -402,11 +379,11 @@
             </div>
 
             <div class="field-group">
-                <label class="field-label">Glucose</label>
-                <div class="input-wrapper">
-                    <input type="number" id="glucose" step="1" inputmode="numeric" placeholder="0">
-                    <span class="unit">mg/dL</span>
+                <div class="field-header">
+                    <label class="field-label">Glucose</label>
+                    <span class="field-value" id="value-glucose">0 mg/dL</span>
                 </div>
+                <input type="number" id="glucose" step="1" inputmode="numeric">
                 <div class="ruler-picker" id="ruler-glucose">
                     <div class="ruler-marker"></div>
                     <div class="ruler-container"></div>
@@ -414,11 +391,11 @@
             </div>
 
             <div class="field-group">
-                <label class="field-label">Body Weight</label>
-                <div class="input-wrapper">
-                    <input type="number" id="body_weight" step="0.1" inputmode="decimal" placeholder="000.0">
-                    <span class="unit">lbs</span>
+                <div class="field-header">
+                    <label class="field-label">Body Weight</label>
+                    <span class="field-value" id="value-body_weight">0.0 lbs</span>
                 </div>
+                <input type="number" id="body_weight" step="0.1" inputmode="decimal">
                 <div class="ruler-picker" id="ruler-body_weight">
                     <div class="ruler-marker"></div>
                     <div class="ruler-container"></div>
@@ -426,11 +403,11 @@
             </div>
 
             <div class="field-group">
-                <label class="field-label">Total Fat</label>
-                <div class="input-wrapper">
-                    <input type="number" id="total_fat" step="0.1" inputmode="decimal" placeholder="0.0">
-                    <span class="unit">%</span>
+                <div class="field-header">
+                    <label class="field-label">Total Fat</label>
+                    <span class="field-value" id="value-total_fat">0.0 %</span>
                 </div>
+                <input type="number" id="total_fat" step="0.1" inputmode="decimal">
                 <div class="ruler-picker" id="ruler-total_fat">
                     <div class="ruler-marker"></div>
                     <div class="ruler-container"></div>
@@ -438,10 +415,11 @@
             </div>
 
             <div class="field-group">
-                <label class="field-label">Visceral Fat</label>
-                <div class="input-wrapper">
-                    <input type="number" id="visceral_fat" step="0.1" inputmode="decimal" placeholder="0.0">
+                <div class="field-header">
+                    <label class="field-label">Visceral Fat</label>
+                    <span class="field-value" id="value-visceral_fat">0.0</span>
                 </div>
+                <input type="number" id="visceral_fat" step="0.1" inputmode="decimal">
                 <div class="ruler-picker" id="ruler-visceral_fat">
                     <div class="ruler-marker"></div>
                     <div class="ruler-container"></div>
@@ -449,10 +427,11 @@
             </div>
 
             <div class="field-group">
-                <label class="field-label">Discomfort Level (0-10)</label>
-                <div class="input-wrapper">
-                    <input type="number" id="discomfort" min="0" max="10" step="0.1" inputmode="decimal" placeholder="0.0">
+                <div class="field-header">
+                    <label class="field-label">Discomfort Level</label>
+                    <span class="field-value" id="value-discomfort">0.0 / 10</span>
                 </div>
+                <input type="number" id="discomfort" min="0" max="10" step="0.1" inputmode="decimal">
                 <div class="ruler-picker" id="ruler-discomfort">
                     <div class="ruler-marker"></div>
                     <div class="ruler-container"></div>
@@ -503,15 +482,19 @@
         // HI Toggle for Ketones
         const hiToggle = document.getElementById('hi-toggle');
         const ketoneInput = document.getElementById('ketones');
+        const ketoneValue = document.getElementById('value-ketones');
 
         hiToggle.addEventListener('click', () => {
             hiToggle.classList.toggle('active');
             if (hiToggle.classList.contains('active')) {
                 ketoneInput.value = "HI";
+                ketoneValue.textContent = "HI mmol/L";
                 ketoneInput.disabled = true;
             } else {
                 ketoneInput.value = "";
                 ketoneInput.disabled = false;
+                const val = parseFloat(ketoneInput.value) || 0;
+                ketoneValue.textContent = `${val.toFixed(1)} mmol/L`;
             }
         });
 
@@ -523,14 +506,15 @@
         }
 
         // Ruler Picker Logic
-        function initRuler(id, min, max, step, initialValue, inputId) {
+        function initRuler(id, min, max, step, initialValue, inputId, displayId, unit) {
             const container = document.querySelector(`#${id} .ruler-container`);
             const input = document.getElementById(inputId);
+            const display = document.getElementById(displayId);
             const ruler = document.createElement('div');
             ruler.className = 'ruler';
-            
+
             const itemWidth = 12; // 10px gap + 2px line
-            
+
             for (let i = min; i <= max; i = parseFloat((i + step).toFixed(1))) {
                 const line = document.createElement('div');
                 const isMajor = Number.isInteger(i) || (i * 10) % 10 === 0;
@@ -538,12 +522,24 @@
                 if (isMajor) line.setAttribute('data-value', i);
                 ruler.appendChild(line);
             }
-            
+
             container.appendChild(ruler);
-            
+
             const scrollToValue = (val) => {
                 const index = (val - min) / step;
                 container.scrollLeft = index * itemWidth;
+            };
+
+            const updateDisplay = (val) => {
+                if (inputId === 'glucose') {
+                    display.textContent = `${Math.round(val)} ${unit}`;
+                } else if (inputId === 'discomfort') {
+                    display.textContent = `${val.toFixed(1)} / 10`;
+                } else if (inputId === 'visceral_fat') {
+                    display.textContent = `${val.toFixed(1)}`;
+                } else {
+                    display.textContent = `${val.toFixed(1)} ${unit}`;
+                }
             };
 
             let isScrolling = false;
@@ -553,18 +549,22 @@
                 const val = parseFloat((min + index * step).toFixed(1));
                 if (input.value != val) {
                     input.value = val;
+                    updateDisplay(val);
                 }
             });
 
             input.addEventListener('input', () => {
                 isScrolling = true;
-                scrollToValue(parseFloat(input.value) || min);
+                const val = parseFloat(input.value) || min;
+                scrollToValue(val);
+                updateDisplay(val);
                 setTimeout(() => { isScrolling = false; }, 100);
             });
 
-            // Initial position
+            // Initial position and display
             setTimeout(() => {
                 scrollToValue(initialValue || min);
+                updateDisplay(initialValue || min);
             }, 100);
         }
 
@@ -590,11 +590,12 @@
                         ketoneInput.value = "HI";
                         hiToggle.classList.add('active');
                         ketoneInput.disabled = true;
+                        ketoneValue.textContent = "HI mmol/L";
                     } else {
                         ketoneInput.value = latest.ketones;
                     }
                 }
-                
+
                 if (latest.glucose) document.getElementById('glucose').value = latest.glucose;
                 if (latest.body_weight) document.getElementById('body_weight').value = latest.body_weight;
                 if (latest.total_fat) document.getElementById('total_fat').value = latest.total_fat;
@@ -602,12 +603,12 @@
                 if (latest.discomfort) document.getElementById('discomfort').value = latest.discomfort;
 
                 // Initialize Rulers
-                initRuler('ruler-ketones', 0, 8, 0.1, initialKetones, 'ketones');
-                initRuler('ruler-glucose', 40, 200, 1, initialGlucose, 'glucose');
-                initRuler('ruler-body_weight', 150, 300, 0.1, initialWeight, 'body_weight');
-                initRuler('ruler-total_fat', 5, 50, 0.1, initialTotalFat, 'total_fat');
-                initRuler('ruler-visceral_fat', 1, 30, 0.1, initialVisceralFat, 'visceral_fat');
-                initRuler('ruler-discomfort', 0, 10, 0.1, initialDiscomfort, 'discomfort');
+                initRuler('ruler-ketones', 0, 8, 0.1, initialKetones, 'ketones', 'value-ketones', 'mmol/L');
+                initRuler('ruler-glucose', 40, 200, 1, initialGlucose, 'glucose', 'value-glucose', 'mg/dL');
+                initRuler('ruler-body_weight', 150, 300, 0.1, initialWeight, 'body_weight', 'value-body_weight', 'lbs');
+                initRuler('ruler-total_fat', 5, 50, 0.1, initialTotalFat, 'total_fat', 'value-total_fat', '%');
+                initRuler('ruler-visceral_fat', 1, 30, 0.1, initialVisceralFat, 'visceral_fat', 'value-visceral_fat', '');
+                initRuler('ruler-discomfort', 0, 10, 0.1, initialDiscomfort, 'discomfort', 'value-discomfort', '');
 
             } catch (err) {
                 console.error("Initialization failed", err);
