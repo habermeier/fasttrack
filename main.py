@@ -207,6 +207,13 @@ def auto_pull_worker():
                 if res.stdout.strip() != "0":
                     print(f"[{dt.now()}] INFO: Remote changes detected. Synchronizing...")
 
+                    # Check for unstaged changes (like telemetry.json)
+                    status_check = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+                    if status_check.stdout.strip():
+                        print(f"[{dt.now()}] INFO: Unstaged changes detected, committing...")
+                        subprocess.run(["git", "add", "telemetry.json"], check=False)
+                        subprocess.run(["git", "commit", "-m", f"telemetry: auto-commit before sync {dt.now().strftime('%Y-%m-%d %H:%M')}"], check=False)
+
                     # Get list of changed files
                     diff_result = subprocess.run(
                         ["git", "diff", "--name-only", "HEAD", "origin/master"],
@@ -217,6 +224,11 @@ def auto_pull_worker():
                     changed_files = set(diff_result.stdout.strip().split('\n'))
 
                     subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
+
+                    # Push telemetry if we committed it
+                    if status_check.stdout.strip():
+                        print(f"[{dt.now()}] INFO: Pushing telemetry changes...")
+                        subprocess.run(["git", "push", "origin", "master"], check=False)
 
                     print(f"[{dt.now()}] INFO: Changed files: {changed_files}")
 
