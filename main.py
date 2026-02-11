@@ -17,9 +17,9 @@ from slowapi.errors import RateLimitExceeded
 import threading
 import time
 import logging
+from datetime import datetime as dt
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Note: Using print() instead of logging for better systemd visibility
 
 app = FastAPI()
 limiter = Limiter(key_func=get_remote_address)
@@ -40,22 +40,22 @@ class CookieRotationMiddleware(BaseHTTPMiddleware):
 
         if not key_ring:
             # No latch exists - create one and latch this device BEFORE processing
-            logging.info("No key ring found. Creating initial key ring for device.")
+            print(f"[{dt.now()}] INFO: No key ring found. Creating initial key ring for device.")
             new_key = generate_secure_key()
             save_latched_key(new_key)
             should_set_cookie = True
-            logging.info(f"Key ring created. First key saved to {KEY_FILE}")
+            print(f"[{dt.now()}] INFO: Key ring created. First key saved to {KEY_FILE}")
             # Update request's cookie for this request so auth checks pass
             request._cookies[COOKIE_NAME] = new_key
         elif not cookie_value:
             # No cookie but ring exists - unauthorized device
             cookie_prefix = "none"
-            logging.warning(f"Middleware: No cookie sent (key ring has {len(key_ring)} keys)")
+            print(f"[{dt.now()}] WARN: Middleware: No cookie sent (key ring has {len(key_ring)} keys)")
         elif cookie_value in key_ring:
             # Cookie matches one of the keys - rotate to new key
             key_index = key_ring.index(cookie_value)
             cookie_prefix = cookie_value[:8]
-            logging.info(f"Middleware: Cookie {cookie_prefix}... matched key #{key_index}, rotating")
+            print(f"[{dt.now()}] INFO: Middleware: Cookie {cookie_prefix}... matched key #{key_index}, rotating")
             new_key = generate_secure_key()
             save_latched_key(new_key)
             should_set_cookie = True
@@ -64,7 +64,7 @@ class CookieRotationMiddleware(BaseHTTPMiddleware):
         else:
             # Cookie doesn't match any key in ring
             cookie_prefix = cookie_value[:8] if cookie_value else "none"
-            logging.warning(f"Middleware: Cookie {cookie_prefix}... not in key ring (ring size: {len(key_ring)})")
+            print(f"[{dt.now()}] WARN: Middleware: Cookie {cookie_prefix}... not in key ring (ring size: {len(key_ring)})")
 
         # Process the request (NOW the latch exists and cookie is set)
         response = await call_next(request)
@@ -135,9 +135,9 @@ def save_latched_key(new_key: str):
         with open(KEY_FILE, "w") as f:
             json.dump(data, f, indent=2)
 
-        logging.info(f"Saved key to ring (ring size: {len(key_ring)})")
+        print(f"[{dt.now()}] INFO: Saved key to ring (ring size: {len(key_ring)})")
     except Exception as e:
-        logging.error(f"Failed to save latch key: {e}")
+        print(f"[{dt.now()}] ERROR: Failed to save latch key: {e}")
         raise
 
 def verify_auth(request: Request):
@@ -147,21 +147,21 @@ def verify_auth(request: Request):
 
     if not key_ring:
         # No latch exists yet - deny (shouldn't happen with middleware)
-        logging.warning("Auth check: No key ring exists")
+        print(f"[{dt.now()}] WARN: Auth check: No key ring exists")
         raise HTTPException(status_code=403, detail="Unauthorized")
 
     if not cookie_value:
-        logging.warning(f"Auth check: Missing cookie (key ring has {len(key_ring)} keys)")
+        print(f"[{dt.now()}] WARN: Auth check: Missing cookie (key ring has {len(key_ring)} keys)")
         raise HTTPException(status_code=403, detail="Unauthorized")
 
     if cookie_value not in key_ring:
         cookie_prefix = cookie_value[:8] if cookie_value else "none"
-        logging.warning(f"Auth check: Cookie {cookie_prefix}... not in key ring (ring size: {len(key_ring)})")
+        print(f"[{dt.now()}] WARN: Auth check: Cookie {cookie_prefix}... not in key ring (ring size: {len(key_ring)})")
         raise HTTPException(status_code=403, detail="Unauthorized")
 
     # Find which key matched
     key_index = key_ring.index(cookie_value)
-    logging.info(f"Auth check: Cookie matched key #{key_index} in ring")
+    print(f"[{dt.now()}] INFO: Auth check: Cookie matched key #{key_index} in ring")
 
 def get_sillykey():
     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -205,7 +205,7 @@ def auto_pull_worker():
                 subprocess.run(["git", "fetch", "origin", "master"], check=True)
                 res = subprocess.run(["git", "rev-list", "HEAD..origin/master", "--count"], capture_output=True, text=True)
                 if res.stdout.strip() != "0":
-                    logging.info("Remote changes detected. Synchronizing...")
+                    print(f"[{dt.now()}] INFO: Remote changes detected. Synchronizing...")
 
                     # Get list of changed files
                     diff_result = subprocess.run(
@@ -218,7 +218,7 @@ def auto_pull_worker():
 
                     subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
 
-                    logging.info(f"Changed files: {changed_files}")
+                    print(f"[{dt.now()}] INFO: Changed files: {changed_files}")
 
                     # Determine if only data files changed
                     data_only_files = {"telemetry.json", "chart.png", "server.log"}
@@ -226,29 +226,29 @@ def auto_pull_worker():
 
                     if non_data_changes:
                         # Code changed - regenerate chart before restart
-                        logging.info(f"Code changes detected: {non_data_changes}")
+                        print(f"[{dt.now()}] INFO: Code changes detected: {non_data_changes}")
 
                         # Always regenerate chart on code changes
                         if os.path.exists(DATA_FILE):
-                            logging.info("Regenerating chart with new code...")
+                            print(f"[{dt.now()}] INFO: Regenerating chart with new code...")
                             with open(DATA_FILE, "r") as f:
                                 data = json.load(f)
                             renderer.generate_chart(data, CHART_FILE)
-                            logging.info("Chart regenerated with latest code.")
+                            print(f"[{dt.now()}] INFO: Chart regenerated with latest code.")
 
-                        logging.info("Restarting service...")
+                        print(f"[{dt.now()}] INFO: Restarting service...")
                         subprocess.Popen(["sudo", "systemctl", "restart", "fasttrack"])
                         return  # Exit worker, service will restart with new code
                     else:
                         # Only data files changed - just regenerate chart
-                        logging.info("Only data files changed. Regenerating chart...")
+                        print(f"[{dt.now()}] INFO: Only data files changed. Regenerating chart...")
                         if os.path.exists(DATA_FILE):
                             with open(DATA_FILE, "r") as f:
                                 data = json.load(f)
                             renderer.generate_chart(data, CHART_FILE)
-                            logging.info("Chart regenerated.")
+                            print(f"[{dt.now()}] INFO: Chart regenerated.")
         except Exception as e:
-            logging.error(f"Auto-pull worker error: {e}")
+            print(f"[{dt.now()}] ERROR: Auto-pull worker error: {e}")
         time.sleep(60)
 
 @app.on_event("startup")
