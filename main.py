@@ -17,6 +17,7 @@ from slowapi.errors import RateLimitExceeded
 import threading
 import time
 import logging
+import sys
 from datetime import datetime as dt
 
 # Note: Using print() instead of logging for better systemd visibility
@@ -216,7 +217,7 @@ def regenerate_chart_if_needed(force: bool = False) -> bool:
 
 def auto_pull_worker():
     """Background task to pull remote changes and refresh chart."""
-    # Test comment: verifying auto-pull detection works
+    print(f"[{dt.now()}] INFO: Auto-pull worker started.")
     while True:
         try:
             with LOCK:
@@ -240,7 +241,9 @@ def auto_pull_worker():
                         text=True,
                         check=True
                     )
-                    changed_files = set(diff_result.stdout.strip().split('\n'))
+                    changed_files = {
+                        line.strip() for line in diff_result.stdout.splitlines() if line.strip()
+                    }
 
                     subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
 
@@ -256,17 +259,19 @@ def auto_pull_worker():
                     non_data_changes = changed_files - data_only_files
 
                     if non_data_changes:
-                        # Code changed - regenerate chart before restart
+                        # Code changed - regenerate now with current process, then restart app process.
                         print(f"[{dt.now()}] INFO: Code changes detected: {non_data_changes}")
 
-                        # Always regenerate chart on code changes
                         if os.path.exists(DATA_FILE):
-                            print(f"[{dt.now()}] INFO: Regenerating chart with new code...")
+                            print(f"[{dt.now()}] INFO: Regenerating chart before restart...")
                             regenerate_chart_if_needed(force=True)
 
-                        print(f"[{dt.now()}] INFO: Restarting service...")
-                        subprocess.Popen(["sudo", "systemctl", "restart", "fasttrack"])
-                        return  # Exit worker, service will restart with new code
+                        # Avoid sudo/systemctl dependency from inside app.
+                        # Under systemd with Restart=always, exiting process triggers clean restart on new code.
+                        print(f"[{dt.now()}] INFO: Exiting process for supervisor restart.")
+                        sys.stdout.flush()
+                        sys.stderr.flush()
+                        os._exit(0)
                     else:
                         # Only data files changed - just regenerate chart
                         print(f"[{dt.now()}] INFO: Only data files changed. Regenerating chart...")
