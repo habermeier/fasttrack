@@ -54,16 +54,42 @@ def generate_chart(nested_data, output_path="chart.png"):
     smooth_ketones = get_pchip(df, 'ketones', sim_hours)
     smooth_gki = get_pchip(df, 'gki', sim_hours)
 
-    # WEIGHT SIMULATION (Physiological Decay Model)
-    # Connecting the measured points
-    weight_df = df.dropna(subset=['body_weight'])
-    if len(weight_df) >= 2:
-        weight_start = weight_df.iloc[0]['body_weight']
-        weight_final = weight_df.iloc[-1]['body_weight']
-        k_decay = 0.008 
-        smooth_weight = weight_final + (weight_start - weight_final) * np.exp(-k_decay * (sim_hours - weight_df.iloc[0]['hours_elapsed']))
-    else:
-        smooth_weight = np.zeros_like(sim_hours)
+    def get_anchor_predictive_series(sub_df, y_column, target_x, tail_damping=0.35):
+        sub = sub_df.dropna(subset=[y_column]).sort_values('hours_elapsed')
+        if len(sub) == 0:
+            return np.zeros_like(target_x), sub
+        if len(sub) == 1:
+            return np.full_like(target_x, float(sub.iloc[0][y_column])), sub
+
+        x = sub['hours_elapsed'].astype(float).to_numpy()
+        y = sub[y_column].astype(float).to_numpy()
+
+        # Anchor-preserving interpolation: curve passes through all measured points.
+        pchip = PchipInterpolator(x, y)
+        smooth = np.empty_like(target_x, dtype=float)
+
+        inside = (target_x >= x[0]) & (target_x <= x[-1])
+        smooth[inside] = pchip(target_x[inside])
+
+        left = target_x < x[0]
+        if np.any(left):
+            dx = x[1] - x[0]
+            slope_left = (y[1] - y[0]) / dx if dx != 0 else 0.0
+            smooth[left] = y[0] + slope_left * tail_damping * (target_x[left] - x[0])
+
+        right = target_x > x[-1]
+        if np.any(right):
+            dx = x[-1] - x[-2]
+            slope_right = (y[-1] - y[-2]) / dx if dx != 0 else 0.0
+            smooth[right] = y[-1] + slope_right * tail_damping * (target_x[right] - x[-1])
+
+        # Keep tails bounded near observed range.
+        band = max(2.0, 0.1 * (y.max() - y.min()))
+        smooth = np.clip(smooth, y.min() - band, y.max() + band)
+        return smooth, sub
+
+    # Weight hybrid model: pin to measured anchors, predict only outside anchor range.
+    smooth_weight, weight_df = get_anchor_predictive_series(df, 'body_weight', sim_hours)
 
     # 4. CIRCADIAN GLUCOSE BANDING
     def get_circadian_band(dates):
