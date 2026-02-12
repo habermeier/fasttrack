@@ -12,6 +12,7 @@ import os
 def generate_chart(nested_data, output_path="chart.png"):
     # 1. TEMPORAL ANCHOR
     start_time = datetime(2026, 1, 28, 18, 0)
+    generated_at_utc = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
     # --- REFRESHED ENGINE LOGIC ---
     def flatten_data(nested):
@@ -208,5 +209,15 @@ def generate_chart(nested_data, output_path="chart.png"):
     plt.setp(ax1.get_xticklabels(), rotation=15, ha='right')
 
     plt.title("Master-View v28: FastTrack Dashboard Analytics", fontsize=60, fontweight='bold', pad=120)
+    fig.text(
+        0.995,
+        0.01,
+        f"Generated: {generated_at_utc}",
+        ha='right',
+        va='bottom',
+        fontsize=20,
+        color='#333333',
+        bbox=dict(facecolor='white', alpha=0.75, edgecolor='none', boxstyle='round,pad=0.25')
+    )
     plt.savefig(output_path, dpi=320) 
     plt.close()
