@@ -26,7 +26,7 @@ def generate_chart(nested_data, output_path="chart.png"):
 
     df = flatten_data(nested_data)
     # Ensure mandatory/expected columns exist
-    for col in ['glucose', 'ketones', 'body_weight', 'cheat_snack', 'keto_snack']:
+    for col in ['glucose', 'ketones', 'body_weight', 'water_percent', 'cheat_snack', 'keto_snack']:
         if col not in df.columns:
             df[col] = np.nan
     for col in ['is_glucose_simulated', 'is_ketones_simulated', 'is_body_weight_simulated']:
@@ -79,42 +79,57 @@ def generate_chart(nested_data, output_path="chart.png"):
     # 5. REFEED & BRIDGE ANNOTATIONS
     refeed_events = df[df['cheat_snack'].notnull()]
     bridge_events = df[df['keto_snack'].notnull()]
+    water_df = df.dropna(subset=['water_percent'])
+    has_water = len(water_df) > 0
 
     # 6. PLOT GENERATION
     plt.rcParams.update({'font.size': 28, 'font.family': 'sans-serif'})
     # Target 16,000px width (Max hardware texture size)
     # 50 inches * 320 DPI = 16,000 pixels
     fig, ax1 = plt.subplots(figsize=(50, 18.75), dpi=320) 
-    plt.subplots_adjust(right=0.88, left=0.06, top=0.9, bottom=0.1)
+    plt.subplots_adjust(right=0.74 if has_water else 0.82, left=0.06, top=0.9, bottom=0.1)
 
     # Primary Axis: Glucose
     ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=36)
-    ax1.fill_between(sim_dates, band_low, band_high, color='red', alpha=0.08, label='Circadian Healthy Band')
+    ax1.fill_between(
+        sim_dates,
+        band_low,
+        band_high,
+        color='#ff7f50',
+        alpha=0.18,
+        zorder=0,
+        label='Expected Glucose Band'
+    )
+    ax1.plot(sim_dates, band_low, color='#ff7f50', lw=2.5, alpha=0.45, ls=':')
+    ax1.plot(sim_dates, band_high, color='#ff7f50', lw=2.5, alpha=0.45, ls=':')
     ax1.plot(sim_dates, smooth_glucose, color='#d62728', lw=10, alpha=0.2)
     ax1.scatter(df.dropna(subset=['glucose'])['timestamp'], df.dropna(subset=['glucose'])['glucose'], color='#d62728', s=400, edgecolors='black', label='Measured Glucose', zorder=5)
     ax1.set_ylim(40, 160)
+    ax1.tick_params(axis='y', colors='#d62728')
 
     # Secondary Axis: Ketones
     ax2 = ax1.twinx()
-    ax2.set_ylabel('Ketones (mmol/L) [Measured]', color='#1f77b4', fontweight='bold')
+    ax2.set_ylabel('Ketones (mmol/L)', color='#1f77b4', fontweight='bold', fontsize=30)
     ax2.plot(sim_dates, smooth_ketones, color='#1f77b4', lw=10, alpha=0.2)
     ax2.scatter(df.dropna(subset=['ketones'])['timestamp'], df.dropna(subset=['ketones'])['ketones'], marker='s', color='#1f77b4', s=400, edgecolors='black', label='Measured Ketones', zorder=5)
     ax2.set_ylim(0, 10)
+    ax2.tick_params(axis='y', colors='#1f77b4')
 
     # Tertiary Axis: GKI
     ax_gki = ax1.twinx()
-    ax_gki.spines['right'].set_position(('outward', 60))
-    ax_gki.set_ylabel('GKI (Repair Index) [Computed]', color='#9467bd', fontweight='bold')
+    ax_gki.spines['right'].set_position(('outward', 80))
+    ax_gki.set_ylabel('GKI', color='#9467bd', fontweight='bold', fontsize=30)
     ax_gki.plot(sim_dates, smooth_gki, color='#9467bd', lw=10, alpha=0.2, ls='--')
     ax_gki.scatter(df.dropna(subset=['gki'])['timestamp'], df.dropna(subset=['gki'])['gki'], marker='D', color='#9467bd', s=300, edgecolors='black', label='Computed GKI', zorder=5)
     ax_gki.axhline(y=1.0, color='purple', ls='-', lw=5, alpha=0.7, label='Mitophagy Goal (1.0)')
     ax_gki.fill_between(sim_dates, 0, 1.0, color='purple', alpha=0.1)
     ax_gki.set_ylim(0, 10)
+    ax_gki.tick_params(axis='y', colors='#9467bd')
 
     # Quaternary Axis: Weight
     ax3 = ax1.twinx()
-    ax3.spines['right'].set_position(('outward', 120))
-    ax3.set_ylabel('Body Weight (lbs) [Simulated Path]', color='#2ca02c', fontweight='bold')
+    ax3.spines['right'].set_position(('outward', 160))
+    ax3.set_ylabel('Weight (lbs)', color='#2ca02c', fontweight='bold', fontsize=30)
     ax3.plot(sim_dates, smooth_weight, color='#2ca02c', lw=12, alpha=0.5, label='Simulation Path')
 
     # Markers for ground truth weight
@@ -122,19 +137,45 @@ def generate_chart(nested_data, output_path="chart.png"):
     ax3.scatter(weight_meas['timestamp'], weight_meas['body_weight'], marker='^', color='#2ca02c', s=600, edgecolors='black', label='Measured Anchor', zorder=6)
     ax3.axhline(y=220, color='blue', ls='-.', lw=4, alpha=0.5, label='Obesity Exit: 220')
     ax3.set_ylim(170, 240)
+    ax3.tick_params(axis='y', colors='#2ca02c')
+
+    # Optional Axis: Water %
+    if has_water:
+        ax_water = ax1.twinx()
+        ax_water.spines['right'].set_position(('outward', 240))
+        ax_water.set_ylabel('Water (%)', color='#17becf', fontweight='bold', fontsize=30)
+        if len(water_df) >= 2:
+            smooth_water = get_pchip(df, 'water_percent', sim_hours)
+            ax_water.plot(sim_dates, smooth_water, color='#17becf', lw=8, alpha=0.35, ls='-.')
+        ax_water.scatter(
+            water_df['timestamp'],
+            water_df['water_percent'],
+            marker='o',
+            color='#17becf',
+            s=280,
+            edgecolors='black',
+            zorder=6
+        )
+        water_min = float(water_df['water_percent'].min())
+        water_max = float(water_df['water_percent'].max())
+        if water_min == water_max:
+            water_min -= 3
+            water_max += 3
+        ax_water.set_ylim(max(40, water_min - 2), min(80, water_max + 2))
+        ax_water.tick_params(axis='y', colors='#17becf')
 
     # Annotate Refeeds and Bridges with 1-hour wide markers (no text labels)
     for idx, row in refeed_events.iterrows():
         # 1-hour wide marker (30 min on each side)
         start_time = row['timestamp'] - timedelta(minutes=30)
         end_time = row['timestamp'] + timedelta(minutes=30)
-        ax1.axvspan(start_time, end_time, color='salmon', alpha=0.4, zorder=1)
+        ax1.axvspan(start_time, end_time, color='salmon', alpha=0.24, zorder=1)
 
     for _, row in bridge_events.iterrows():
         # 1-hour wide marker (30 min on each side)
         start_time = row['timestamp'] - timedelta(minutes=30)
         end_time = row['timestamp'] + timedelta(minutes=30)
-        ax1.axvspan(start_time, end_time, color='lightgreen', alpha=0.4, zorder=1)
+        ax1.axvspan(start_time, end_time, color='lightgreen', alpha=0.24, zorder=1)
 
     plt.title("Master-View v28: FastTrack Dashboard Analytics", fontsize=60, fontweight='bold', pad=120)
     plt.savefig(output_path, dpi=320) 
