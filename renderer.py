@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib.ticker import MultipleLocator
 import pandas as pd
 import numpy as np
 import uuid
@@ -87,7 +89,7 @@ def generate_chart(nested_data, output_path="chart.png"):
     # Target 16,000px width (Max hardware texture size)
     # 50 inches * 320 DPI = 16,000 pixels
     fig, ax1 = plt.subplots(figsize=(50, 18.75), dpi=320) 
-    plt.subplots_adjust(right=0.74 if has_water else 0.82, left=0.06, top=0.9, bottom=0.1)
+    plt.subplots_adjust(right=0.70 if has_water else 0.80, left=0.06, top=0.9, bottom=0.1)
 
     # Primary Axis: Glucose
     ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=36)
@@ -105,31 +107,25 @@ def generate_chart(nested_data, output_path="chart.png"):
     ax1.plot(sim_dates, smooth_glucose, color='#d62728', lw=10, alpha=0.2)
     ax1.scatter(df.dropna(subset=['glucose'])['timestamp'], df.dropna(subset=['glucose'])['glucose'], color='#d62728', s=400, edgecolors='black', label='Measured Glucose', zorder=5)
     ax1.set_ylim(40, 160)
-    ax1.tick_params(axis='y', colors='#d62728')
+    ax1.tick_params(axis='y', colors='#d62728', labelsize=24)
 
     # Secondary Axis: Ketones
     ax2 = ax1.twinx()
-    ax2.set_ylabel('Ketones (mmol/L)', color='#1f77b4', fontweight='bold', fontsize=30)
+    ax2.set_ylabel('Ketones / GKI (0-10)', color='#1f77b4', fontweight='bold', fontsize=24, labelpad=18)
     ax2.plot(sim_dates, smooth_ketones, color='#1f77b4', lw=10, alpha=0.2)
     ax2.scatter(df.dropna(subset=['ketones'])['timestamp'], df.dropna(subset=['ketones'])['ketones'], marker='s', color='#1f77b4', s=400, edgecolors='black', label='Measured Ketones', zorder=5)
+    ax2.plot(sim_dates, smooth_gki, color='#9467bd', lw=10, alpha=0.2, ls='--')
+    ax2.scatter(df.dropna(subset=['gki'])['timestamp'], df.dropna(subset=['gki'])['gki'], marker='D', color='#9467bd', s=300, edgecolors='black', label='Computed GKI', zorder=5)
+    ax2.axhline(y=1.0, color='purple', ls='-', lw=5, alpha=0.7, label='Mitophagy Goal (1.0)')
+    ax2.fill_between(sim_dates, 0, 1.0, color='purple', alpha=0.1)
     ax2.set_ylim(0, 10)
-    ax2.tick_params(axis='y', colors='#1f77b4')
-
-    # Tertiary Axis: GKI
-    ax_gki = ax1.twinx()
-    ax_gki.spines['right'].set_position(('outward', 80))
-    ax_gki.set_ylabel('GKI', color='#9467bd', fontweight='bold', fontsize=30)
-    ax_gki.plot(sim_dates, smooth_gki, color='#9467bd', lw=10, alpha=0.2, ls='--')
-    ax_gki.scatter(df.dropna(subset=['gki'])['timestamp'], df.dropna(subset=['gki'])['gki'], marker='D', color='#9467bd', s=300, edgecolors='black', label='Computed GKI', zorder=5)
-    ax_gki.axhline(y=1.0, color='purple', ls='-', lw=5, alpha=0.7, label='Mitophagy Goal (1.0)')
-    ax_gki.fill_between(sim_dates, 0, 1.0, color='purple', alpha=0.1)
-    ax_gki.set_ylim(0, 10)
-    ax_gki.tick_params(axis='y', colors='#9467bd')
+    ax2.yaxis.set_major_locator(MultipleLocator(2))
+    ax2.tick_params(axis='y', colors='#1f77b4', labelsize=22, pad=4)
 
     # Quaternary Axis: Weight
     ax3 = ax1.twinx()
-    ax3.spines['right'].set_position(('outward', 160))
-    ax3.set_ylabel('Weight (lbs)', color='#2ca02c', fontweight='bold', fontsize=30)
+    ax3.spines['right'].set_position(('outward', 90))
+    ax3.set_ylabel('Weight (lbs)', color='#2ca02c', fontweight='bold', fontsize=24, labelpad=14)
     ax3.plot(sim_dates, smooth_weight, color='#2ca02c', lw=12, alpha=0.5, label='Simulation Path')
 
     # Markers for ground truth weight
@@ -137,13 +133,14 @@ def generate_chart(nested_data, output_path="chart.png"):
     ax3.scatter(weight_meas['timestamp'], weight_meas['body_weight'], marker='^', color='#2ca02c', s=600, edgecolors='black', label='Measured Anchor', zorder=6)
     ax3.axhline(y=220, color='blue', ls='-.', lw=4, alpha=0.5, label='Obesity Exit: 220')
     ax3.set_ylim(170, 240)
-    ax3.tick_params(axis='y', colors='#2ca02c')
+    ax3.yaxis.set_major_locator(MultipleLocator(10))
+    ax3.tick_params(axis='y', colors='#2ca02c', labelsize=22, pad=3)
 
     # Optional Axis: Water %
     if has_water:
         ax_water = ax1.twinx()
-        ax_water.spines['right'].set_position(('outward', 240))
-        ax_water.set_ylabel('Water (%)', color='#17becf', fontweight='bold', fontsize=30)
+        ax_water.spines['right'].set_position(('outward', 170))
+        ax_water.set_ylabel('Water (%)', color='#17becf', fontweight='bold', fontsize=24, labelpad=12)
         if len(water_df) >= 2:
             smooth_water = get_pchip(df, 'water_percent', sim_hours)
             ax_water.plot(sim_dates, smooth_water, color='#17becf', lw=8, alpha=0.35, ls='-.')
@@ -162,7 +159,8 @@ def generate_chart(nested_data, output_path="chart.png"):
             water_min -= 3
             water_max += 3
         ax_water.set_ylim(max(40, water_min - 2), min(80, water_max + 2))
-        ax_water.tick_params(axis='y', colors='#17becf')
+        ax_water.yaxis.set_major_locator(MultipleLocator(2))
+        ax_water.tick_params(axis='y', colors='#17becf', labelsize=22, pad=2)
 
     # Annotate Refeeds and Bridges with 1-hour wide markers (no text labels)
     for idx, row in refeed_events.iterrows():
@@ -176,6 +174,12 @@ def generate_chart(nested_data, output_path="chart.png"):
         start_time = row['timestamp'] - timedelta(minutes=30)
         end_time = row['timestamp'] + timedelta(minutes=30)
         ax1.axvspan(start_time, end_time, color='lightgreen', alpha=0.24, zorder=1)
+
+    # Keep date labels legible on dense windows.
+    ax1.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=6, maxticks=9))
+    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax1.tick_params(axis='x', labelsize=22)
+    plt.setp(ax1.get_xticklabels(), rotation=15, ha='right')
 
     plt.title("Master-View v28: FastTrack Dashboard Analytics", fontsize=60, fontweight='bold', pad=120)
     plt.savefig(output_path, dpi=320) 
