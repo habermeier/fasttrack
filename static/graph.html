@@ -79,5 +79,24 @@
     <div class="container">
         <img id="graph" src="/api/graph" alt="Analytics Graph">
     </div>
+
+    <script>
+        function refreshGraph(force) {
+            const img = document.getElementById('graph');
+            const nonce = Date.now();
+            const forceParam = force ? '&force=1' : '';
+            img.src = `/api/graph?v=${nonce}${forceParam}`;
+        }
+
+        // Always request a fresh image URL on page load.
+        refreshGraph(false);
+
+        // If user returns to tab, refresh graph.
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                refreshGraph(false);
+            }
+        });
+    </script>
 </body>
 </html>

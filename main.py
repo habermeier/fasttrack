@@ -195,6 +195,25 @@ def run_updates(new_data, message: str):
             print(f"Chart generation failed: {e}")
         git_sync(message)
 
+def regenerate_chart_if_needed(force: bool = False) -> bool:
+    """Regenerate chart when missing/stale, or always when forced."""
+    if not os.path.exists(DATA_FILE):
+        return False
+
+    chart_missing = not os.path.exists(CHART_FILE)
+    chart_stale = False
+    if not chart_missing:
+        chart_stale = os.path.getmtime(CHART_FILE) < os.path.getmtime(DATA_FILE)
+
+    if force or chart_missing or chart_stale:
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+        renderer.generate_chart(data, CHART_FILE)
+        reason = "forced" if force else ("missing" if chart_missing else "stale")
+        print(f"[{dt.now()}] INFO: Chart regenerated ({reason}).")
+        return True
+    return False
+
 def auto_pull_worker():
     """Background task to pull remote changes and refresh chart."""
     # Test comment: verifying auto-pull detection works
@@ -243,10 +262,7 @@ def auto_pull_worker():
                         # Always regenerate chart on code changes
                         if os.path.exists(DATA_FILE):
                             print(f"[{dt.now()}] INFO: Regenerating chart with new code...")
-                            with open(DATA_FILE, "r") as f:
-                                data = json.load(f)
-                            renderer.generate_chart(data, CHART_FILE)
-                            print(f"[{dt.now()}] INFO: Chart regenerated with latest code.")
+                            regenerate_chart_if_needed(force=True)
 
                         print(f"[{dt.now()}] INFO: Restarting service...")
                         subprocess.Popen(["sudo", "systemctl", "restart", "fasttrack"])
@@ -254,11 +270,7 @@ def auto_pull_worker():
                     else:
                         # Only data files changed - just regenerate chart
                         print(f"[{dt.now()}] INFO: Only data files changed. Regenerating chart...")
-                        if os.path.exists(DATA_FILE):
-                            with open(DATA_FILE, "r") as f:
-                                data = json.load(f)
-                            renderer.generate_chart(data, CHART_FILE)
-                            print(f"[{dt.now()}] INFO: Chart regenerated.")
+                        regenerate_chart_if_needed(force=True)
         except Exception as e:
             print(f"[{dt.now()}] ERROR: Auto-pull worker error: {e}")
         time.sleep(60)
@@ -412,43 +424,34 @@ async def read_graph():
     return FileResponse("static/graph.html")
 
 @app.get("/api/graph")
-async def get_pure_graph():
-    if not os.path.exists(CHART_FILE):
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, "r") as f:
-                data = json.load(f)
-            renderer.generate_chart(data, CHART_FILE)
-        else:
-            raise HTTPException(status_code=404, detail="Chart not found")
+async def get_pure_graph(force: bool = Query(False)):
+    if not regenerate_chart_if_needed(force=force) and not os.path.exists(CHART_FILE):
+        raise HTTPException(status_code=404, detail="Chart not found")
     # Disable caching - always fetch fresh chart
     return FileResponse(
         CHART_FILE,
         headers={
-            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
             "Pragma": "no-cache",
-            "Expires": "0"
+            "Expires": "0",
+            "Surrogate-Control": "no-store"
         }
     )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/api/chart")
-async def get_chart():
-    if not os.path.exists(CHART_FILE):
-        # Generate it if it doesn't exist
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, "r") as f:
-                data = json.load(f)
-            renderer.generate_chart(data, CHART_FILE)
-        else:
-            raise HTTPException(status_code=404, detail="Chart not found and no data available")
+async def get_chart(force: bool = Query(False)):
+    if not regenerate_chart_if_needed(force=force) and not os.path.exists(CHART_FILE):
+        raise HTTPException(status_code=404, detail="Chart not found and no data available")
     # Disable caching - always fetch fresh chart
     return FileResponse(
         CHART_FILE,
         headers={
-            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
             "Pragma": "no-cache",
-            "Expires": "0"
+            "Expires": "0",
+            "Surrogate-Control": "no-store"
         }
     )
 
