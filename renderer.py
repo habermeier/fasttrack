@@ -29,7 +29,7 @@ def generate_chart(nested_data, output_path="chart.png"):
 
     df = flatten_data(nested_data)
     # Ensure mandatory/expected columns exist
-    for col in ['glucose', 'ketones', 'body_weight', 'water_percent', 'cheat_snack', 'keto_snack']:
+    for col in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'cheat_snack', 'keto_snack']:
         if col not in df.columns:
             df[col] = np.nan
     for col in ['is_glucose_simulated', 'is_ketones_simulated', 'is_body_weight_simulated']:
@@ -51,9 +51,28 @@ def generate_chart(nested_data, output_path="chart.png"):
         if len(sub) < 2: return np.zeros_like(target_x)
         return PchipInterpolator(sub['hours_elapsed'], sub[y_column])(target_x)
 
+    def mask_before_first_point(measured_df, target_x, values):
+        if len(measured_df) == 0:
+            return np.full_like(values, np.nan, dtype=float)
+        first_hour = float(measured_df['hours_elapsed'].iloc[0])
+        return np.where(target_x >= first_hour, values, np.nan)
+
+    is_glucose_measured = (df.get('is_glucose_simulated', pd.Series(False, index=df.index)) == False)
+    is_ketones_measured = (df.get('is_ketones_simulated', pd.Series(False, index=df.index)) == False)
+    is_weight_measured = (df.get('is_body_weight_simulated', pd.Series(False, index=df.index)) == False)
+
+    glucose_meas_df = df[df['glucose'].notnull() & is_glucose_measured].sort_values('hours_elapsed')
+    ketones_meas_df = df[df['ketones'].notnull() & is_ketones_measured].sort_values('hours_elapsed')
+    gki_meas_df = df[df['gki'].notnull() & is_glucose_measured & is_ketones_measured].sort_values('hours_elapsed')
+    weight_meas_df = df[df['body_weight'].notnull() & is_weight_measured].sort_values('hours_elapsed')
+
     smooth_glucose = get_pchip(df, 'glucose', sim_hours)
     smooth_ketones = get_pchip(df, 'ketones', sim_hours)
     smooth_gki = get_pchip(df, 'gki', sim_hours)
+
+    smooth_glucose_masked = mask_before_first_point(glucose_meas_df, sim_hours, smooth_glucose)
+    smooth_ketones_masked = mask_before_first_point(ketones_meas_df, sim_hours, smooth_ketones)
+    smooth_gki_masked = mask_before_first_point(gki_meas_df, sim_hours, smooth_gki)
 
     def get_anchor_predictive_series(sub_df, y_column, target_x, tail_damping=0.35):
         sub = sub_df.dropna(subset=[y_column]).sort_values('hours_elapsed')
@@ -90,7 +109,8 @@ def generate_chart(nested_data, output_path="chart.png"):
         return smooth, sub
 
     # Weight hybrid model: pin to measured anchors, predict only outside anchor range.
-    smooth_weight, weight_df = get_anchor_predictive_series(df, 'body_weight', sim_hours)
+    smooth_weight, _ = get_anchor_predictive_series(df, 'body_weight', sim_hours)
+    smooth_weight_masked = mask_before_first_point(weight_meas_df, sim_hours, smooth_weight)
 
     # 4. CIRCADIAN GLUCOSE BANDING
     def get_circadian_band(dates):
@@ -109,14 +129,25 @@ def generate_chart(nested_data, output_path="chart.png"):
     refeed_events = df[df['cheat_snack'].notnull()]
     bridge_events = df[df['keto_snack'].notnull()]
     water_df = df.dropna(subset=['water_percent'])
+    total_fat_df = df.dropna(subset=['total_fat']).sort_values('hours_elapsed')
+    visceral_fat_df = df.dropna(subset=['visceral_fat']).sort_values('hours_elapsed')
     has_water = len(water_df) > 0
+    has_body_fat = len(total_fat_df) > 0 or len(visceral_fat_df) > 0
 
     # 6. PLOT GENERATION
     plt.rcParams.update({'font.size': 28, 'font.family': 'sans-serif'})
-    # Target 16,000px width (Max hardware texture size)
-    # 50 inches * 320 DPI = 16,000 pixels
-    fig, ax1 = plt.subplots(figsize=(50, 18.75), dpi=320) 
-    plt.subplots_adjust(right=0.70 if has_water else 0.80, left=0.06, top=0.9, bottom=0.1)
+    # Target 16,000px width by default (50 in * 320 DPI).
+    chart_width = float(os.getenv('FASTTRACK_CHART_WIDTH_IN', '50'))
+    chart_height = float(os.getenv('FASTTRACK_CHART_HEIGHT_IN', '18.75'))
+    chart_dpi = int(os.getenv('FASTTRACK_CHART_DPI', '320'))
+    fig, ax1 = plt.subplots(figsize=(chart_width, chart_height), dpi=chart_dpi)
+    if has_water and has_body_fat:
+        plot_right = 0.58
+    elif has_water or has_body_fat:
+        plot_right = 0.68
+    else:
+        plot_right = 0.80
+    plt.subplots_adjust(right=plot_right, left=0.06, top=0.96, bottom=0.1)
 
     # Primary Axis: Glucose
     ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=36)
@@ -131,18 +162,18 @@ def generate_chart(nested_data, output_path="chart.png"):
     )
     ax1.plot(sim_dates, band_low, color='#ff7f50', lw=2.5, alpha=0.45, ls=':')
     ax1.plot(sim_dates, band_high, color='#ff7f50', lw=2.5, alpha=0.45, ls=':')
-    ax1.plot(sim_dates, smooth_glucose, color='#d62728', lw=10, alpha=0.2)
-    ax1.scatter(df.dropna(subset=['glucose'])['timestamp'], df.dropna(subset=['glucose'])['glucose'], color='#d62728', s=400, edgecolors='black', label='Measured Glucose', zorder=5)
+    ax1.plot(sim_dates, smooth_glucose_masked, color='#d62728', lw=10, alpha=0.2)
+    ax1.scatter(glucose_meas_df['timestamp'], glucose_meas_df['glucose'], color='#d62728', s=400, edgecolors='black', label='Measured Glucose', zorder=5)
     ax1.set_ylim(40, 160)
     ax1.tick_params(axis='y', colors='#d62728', labelsize=24)
 
     # Secondary Axis: Ketones
     ax2 = ax1.twinx()
     ax2.set_ylabel('Ketones / GKI (0-10)', color='#1f77b4', fontweight='bold', fontsize=24, labelpad=18)
-    ax2.plot(sim_dates, smooth_ketones, color='#1f77b4', lw=10, alpha=0.2)
-    ax2.scatter(df.dropna(subset=['ketones'])['timestamp'], df.dropna(subset=['ketones'])['ketones'], marker='s', color='#1f77b4', s=400, edgecolors='black', label='Measured Ketones', zorder=5)
-    ax2.plot(sim_dates, smooth_gki, color='#9467bd', lw=10, alpha=0.2, ls='--')
-    ax2.scatter(df.dropna(subset=['gki'])['timestamp'], df.dropna(subset=['gki'])['gki'], marker='D', color='#9467bd', s=300, edgecolors='black', label='Computed GKI', zorder=5)
+    ax2.plot(sim_dates, smooth_ketones_masked, color='#1f77b4', lw=10, alpha=0.2)
+    ax2.scatter(ketones_meas_df['timestamp'], ketones_meas_df['ketones'], marker='s', color='#1f77b4', s=400, edgecolors='black', label='Measured Ketones', zorder=5)
+    ax2.plot(sim_dates, smooth_gki_masked, color='#9467bd', lw=10, alpha=0.2, ls='--')
+    ax2.scatter(gki_meas_df['timestamp'], gki_meas_df['gki'], marker='D', color='#9467bd', s=300, edgecolors='black', label='Computed GKI', zorder=5)
     ax2.axhline(y=1.0, color='purple', ls='-', lw=5, alpha=0.7, label='Mitophagy Goal (1.0)')
     ax2.fill_between(sim_dates, 0, 1.0, color='purple', alpha=0.1)
     ax2.set_ylim(0, 10)
@@ -153,24 +184,73 @@ def generate_chart(nested_data, output_path="chart.png"):
     ax3 = ax1.twinx()
     ax3.spines['right'].set_position(('outward', 90))
     ax3.set_ylabel('Weight (lbs)', color='#2ca02c', fontweight='bold', fontsize=24, labelpad=14)
-    ax3.plot(sim_dates, smooth_weight, color='#2ca02c', lw=12, alpha=0.5, label='Simulation Path')
+    ax3.plot(sim_dates, smooth_weight_masked, color='#2ca02c', lw=12, alpha=0.5, label='Simulation Path')
 
     # Markers for ground truth weight
-    weight_meas = df[(df['body_weight'].notnull()) & (df.get('is_body_weight_simulated', pd.Series([False]*len(df))) == False)]
-    ax3.scatter(weight_meas['timestamp'], weight_meas['body_weight'], marker='^', color='#2ca02c', s=600, edgecolors='black', label='Measured Anchor', zorder=6)
+    ax3.scatter(weight_meas_df['timestamp'], weight_meas_df['body_weight'], marker='^', color='#2ca02c', s=600, edgecolors='black', label='Measured Anchor', zorder=6)
     ax3.axhline(y=220, color='blue', ls='-.', lw=4, alpha=0.5, label='Obesity Exit: 220')
     ax3.set_ylim(170, 240)
     ax3.yaxis.set_major_locator(MultipleLocator(10))
     ax3.tick_params(axis='y', colors='#2ca02c', labelsize=22, pad=3)
 
+    # Optional Axis: Body Fat %
+    if has_body_fat:
+        ax_fat = ax1.twinx()
+        ax_fat.spines['right'].set_position(('outward', 170 if has_water else 90))
+        ax_fat.set_ylabel('Body/Visceral Fat (%)', color='#ff8c00', fontweight='bold', fontsize=24, labelpad=12)
+
+        # Start lines at first recorded data point (no back-fill before first measurement).
+        if len(total_fat_df) >= 2:
+            smooth_total_fat = get_pchip(df, 'total_fat', sim_hours)
+            total_masked = mask_before_first_point(total_fat_df, sim_hours, smooth_total_fat)
+            ax_fat.plot(sim_dates, total_masked, color='#ff8c00', lw=8, alpha=0.4, ls='-')
+        if len(visceral_fat_df) >= 2:
+            smooth_visceral_fat = get_pchip(df, 'visceral_fat', sim_hours)
+            visceral_masked = mask_before_first_point(visceral_fat_df, sim_hours, smooth_visceral_fat)
+            ax_fat.plot(sim_dates, visceral_masked, color='#8b4513', lw=8, alpha=0.4, ls='--')
+
+        ax_fat.scatter(
+            total_fat_df['timestamp'],
+            total_fat_df['total_fat'],
+            marker='P',
+            color='#ff8c00',
+            s=320,
+            edgecolors='black',
+            zorder=6
+        )
+        ax_fat.scatter(
+            visceral_fat_df['timestamp'],
+            visceral_fat_df['visceral_fat'],
+            marker='X',
+            color='#8b4513',
+            s=320,
+            edgecolors='black',
+            zorder=6
+        )
+
+        fat_values = []
+        if len(total_fat_df) > 0:
+            fat_values.extend(total_fat_df['total_fat'].astype(float).tolist())
+        if len(visceral_fat_df) > 0:
+            fat_values.extend(visceral_fat_df['visceral_fat'].astype(float).tolist())
+        fat_min = min(fat_values)
+        fat_max = max(fat_values)
+        if fat_min == fat_max:
+            fat_min -= 2
+            fat_max += 2
+        ax_fat.set_ylim(max(0, fat_min - 2), fat_max + 2)
+        ax_fat.yaxis.set_major_locator(MultipleLocator(2))
+        ax_fat.tick_params(axis='y', colors='#ff8c00', labelsize=22, pad=2)
+
     # Optional Axis: Water %
     if has_water:
         ax_water = ax1.twinx()
-        ax_water.spines['right'].set_position(('outward', 170))
+        ax_water.spines['right'].set_position(('outward', 250 if has_body_fat else 170))
         ax_water.set_ylabel('Water (%)', color='#17becf', fontweight='bold', fontsize=24, labelpad=12)
         if len(water_df) >= 2:
             smooth_water = get_pchip(df, 'water_percent', sim_hours)
-            ax_water.plot(sim_dates, smooth_water, color='#17becf', lw=8, alpha=0.35, ls='-.')
+            smooth_water_masked = mask_before_first_point(water_df, sim_hours, smooth_water)
+            ax_water.plot(sim_dates, smooth_water_masked, color='#17becf', lw=8, alpha=0.35, ls='-.')
         ax_water.scatter(
             water_df['timestamp'],
             water_df['water_percent'],
@@ -190,17 +270,17 @@ def generate_chart(nested_data, output_path="chart.png"):
         ax_water.tick_params(axis='y', colors='#17becf', labelsize=22, pad=2)
 
     # Annotate Refeeds and Bridges with 1-hour wide markers (no text labels)
-    for idx, row in refeed_events.iterrows():
+    for _, row in refeed_events.iterrows():
         # 1-hour wide marker (30 min on each side)
-        start_time = row['timestamp'] - timedelta(minutes=30)
-        end_time = row['timestamp'] + timedelta(minutes=30)
-        ax1.axvspan(start_time, end_time, color='salmon', alpha=0.24, zorder=1)
+        span_start = row['timestamp'] - timedelta(minutes=30)
+        span_end = row['timestamp'] + timedelta(minutes=30)
+        ax1.axvspan(span_start, span_end, color='salmon', alpha=0.24, zorder=1)
 
     for _, row in bridge_events.iterrows():
         # 1-hour wide marker (30 min on each side)
-        start_time = row['timestamp'] - timedelta(minutes=30)
-        end_time = row['timestamp'] + timedelta(minutes=30)
-        ax1.axvspan(start_time, end_time, color='lightgreen', alpha=0.24, zorder=1)
+        span_start = row['timestamp'] - timedelta(minutes=30)
+        span_end = row['timestamp'] + timedelta(minutes=30)
+        ax1.axvspan(span_start, span_end, color='lightgreen', alpha=0.24, zorder=1)
 
     # Keep date labels legible on dense windows.
     ax1.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=6, maxticks=9))
@@ -208,7 +288,6 @@ def generate_chart(nested_data, output_path="chart.png"):
     ax1.tick_params(axis='x', labelsize=22)
     plt.setp(ax1.get_xticklabels(), rotation=15, ha='right')
 
-    plt.title("Master-View v28: FastTrack Dashboard Analytics", fontsize=60, fontweight='bold', pad=120)
     fig.text(
         0.995,
         0.01,
@@ -219,5 +298,5 @@ def generate_chart(nested_data, output_path="chart.png"):
         color='#333333',
         bbox=dict(facecolor='white', alpha=0.75, edgecolor='none', boxstyle='round,pad=0.25')
     )
-    plt.savefig(output_path, dpi=320) 
+    plt.savefig(output_path, dpi=chart_dpi)
     plt.close()
