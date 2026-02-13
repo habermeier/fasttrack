@@ -455,25 +455,12 @@ async def get_data_api():
 
 @app.get("/data", response_class=PlainTextResponse)
 async def get_data_text():
-    # Plain-text agent entry point for tools that prefer text over JSON/OpenAPI.
-    return """TrackFast Data Entry Point
-
-Live JSON telemetry:
-- https://trackfast.fun/api/telemetry
-- https://trackfast.fun/api/data
-
-API schema:
-- https://trackfast.fun/openapi.json
-
-Discovery files:
-- https://trackfast.fun/llms.txt
-- https://trackfast.fun/robots.txt
-- https://trackfast.fun/sitemap.xml
-
-Notes:
-- GET requests are public/read-only.
-- Write operations on /api/telemetry require auth cookie.
-"""
+    # Plain-text mirror of live telemetry for tools that prefer text over JSON responses.
+    if not os.path.exists(DATA_FILE):
+        return "[]\n"
+    with open(DATA_FILE, "r") as f:
+        data = json.load(f)
+    return json.dumps(data, indent=2) + "\n"
 
 @app.get("/llms.txt")
 async def get_llms_txt():
