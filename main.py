@@ -175,16 +175,19 @@ def verify_sillykey(sillykey: str):
 
 def git_sync(message: str):
     try:
-        # Ensure we are up to date before pushing
-        subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
         subprocess.run(["git", "add", DATA_FILE], check=True)
         # Only commit if there are changes
         status = subprocess.run(["git", "status", "--porcelain", DATA_FILE], capture_output=True, text=True)
-        if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", f"telemetry: {message}"], check=True)
-            subprocess.run(["git", "push", "origin", "master"], check=True)
+        if not status.stdout.strip():
+            return
+
+        # Commit local telemetry first, then rebase/push to avoid losing updates when remote moved.
+        subprocess.run(["git", "commit", "-m", f"telemetry: {message}"], check=True)
+        subprocess.run(["git", "pull", "--rebase", "origin", "master"], check=True)
+        subprocess.run(["git", "push", "origin", "master"], check=True)
+        print(f"[{dt.now()}] INFO: Git sync successful ({message})")
     except Exception as e:
-        print(f"Git sync failed: {e}")
+        print(f"[{dt.now()}] ERROR: Git sync failed ({message}): {e}")
 
 def run_updates(new_data, message: str):
     with LOCK:
