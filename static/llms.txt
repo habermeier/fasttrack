@@ -1,0 +1,13 @@
+# TrackFast Telemetry
+> Real-time telemetry for the TrackFast project.
+
+## Primary Endpoints
+- Live telemetry JSON: https://trackfast.fun/api/telemetry
+- Data alias JSON: https://trackfast.fun/api/data
+- OpenAPI schema: https://trackfast.fun/openapi.json
+- Plain-text agent entry point: https://trackfast.fun/data
+
+## Usage Notes
+- Public GET reads are allowed.
+- Write operations on `/api/telemetry` require auth cookie.
+- Data is continuously updated.

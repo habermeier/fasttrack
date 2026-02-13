@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://trackfast.fun/</loc>
+  </url>
+  <url>
+    <loc>https://trackfast.fun/graph</loc>
+  </url>
+  <url>
+    <loc>https://trackfast.fun/data</loc>
+  </url>
+  <url>
+    <loc>https://trackfast.fun/llms.txt</loc>
+  </url>
+  <url>
+    <loc>https://trackfast.fun/openapi.json</loc>
+  </url>
+  <url>
+    <loc>https://trackfast.fun/api/telemetry</loc>
+  </url>
+  <url>
+    <loc>https://trackfast.fun/api/data</loc>
+  </url>
+</urlset>

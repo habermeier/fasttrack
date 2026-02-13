@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Query, BackgroundTasks
-from fastapi.responses import FileResponse, JSONResponse, Response, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, RedirectResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 import json
@@ -444,6 +444,48 @@ async def get_pure_graph(force: bool = Query(False)):
     )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/api/data")
+async def get_data_api():
+    # Alias for AI/tooling that expects a generic "data" endpoint.
+    if not os.path.exists(DATA_FILE):
+        return []
+    with open(DATA_FILE, "r") as f:
+        return json.load(f)
+
+@app.get("/data", response_class=PlainTextResponse)
+async def get_data_text():
+    # Plain-text agent entry point for tools that prefer text over JSON/OpenAPI.
+    return """TrackFast Data Entry Point
+
+Live JSON telemetry:
+- https://trackfast.fun/api/telemetry
+- https://trackfast.fun/api/data
+
+API schema:
+- https://trackfast.fun/openapi.json
+
+Discovery files:
+- https://trackfast.fun/llms.txt
+- https://trackfast.fun/robots.txt
+- https://trackfast.fun/sitemap.xml
+
+Notes:
+- GET requests are public/read-only.
+- Write operations on /api/telemetry require auth cookie.
+"""
+
+@app.get("/llms.txt")
+async def get_llms_txt():
+    return FileResponse("static/llms.txt", media_type="text/plain; charset=utf-8")
+
+@app.get("/robots.txt")
+async def get_robots_txt():
+    return FileResponse("static/robots.txt", media_type="text/plain; charset=utf-8")
+
+@app.get("/sitemap.xml")
+async def get_sitemap_xml():
+    return FileResponse("static/sitemap.xml", media_type="application/xml")
 
 @app.get("/api/chart")
 async def get_chart(force: bool = Query(False)):
