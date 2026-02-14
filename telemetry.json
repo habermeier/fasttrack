@@ -877,5 +877,16 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-02-14T18:00:00Z",
+        "entries": [
+            {
+                "id": "eaf4c5b6-9d25-452b-9173-d1c1fd78e435",
+                "key": "keto_snack",
+                "value": "1 avocado, kimchi, and some macadamia nuts",
+                "simulated": false
+            }
+        ]
     }
 ]
