@@ -294,6 +294,28 @@
         ]
     },
     {
+        "timestamp": "2026-02-06T18:00:00Z",
+        "entries": [
+            {
+                "id": "574bbec3-b209-441d-95f1-7442ec2c463b",
+                "key": "keto_snack",
+                "value": "1 avocado, kimchi, and some macadamia nuts",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-07T18:00:00Z",
+        "entries": [
+            {
+                "id": "ba0aa75a-aff2-4f7e-9f6a-2d6f7f5e8d10",
+                "key": "keto_snack",
+                "value": "1 avocado, kimchi, and some macadamia nuts",
+                "simulated": false
+            }
+        ]
+    },
+    {
         "timestamp": "2026-02-08T02:16:50.345206Z",
         "entries": [
             {
@@ -354,7 +376,7 @@
         "timestamp": "2026-02-08T18:00:00Z",
         "entries": [
             {
-                "id": "69e46e71-030d-4044-b113-fdf0cf697b4f",
+                "id": "cdb23ad0-b616-4415-9001-b8b93d7ebc62",
                 "key": "keto_snack",
                 "value": "1 avocado, kimchi, and some macadamia nuts",
                 "simulated": false
@@ -417,7 +439,7 @@
         "timestamp": "2026-02-09T18:00:00Z",
         "entries": [
             {
-                "id": "f7ba0dd1-a3b5-4463-8683-a85a591a132a",
+                "id": "58663073-ba7b-4140-ad67-83694b65e60b",
                 "key": "keto_snack",
                 "value": "1 avocado, kimchi, and some macadamia nuts",
                 "simulated": false
@@ -469,7 +491,7 @@
         "timestamp": "2026-02-10T18:00:00Z",
         "entries": [
             {
-                "id": "f3410878-078f-49c8-8574-35d63e1ce5bf",
+                "id": "72772d8a-0e02-4c70-830b-3a8be0cb9be4",
                 "key": "keto_snack",
                 "value": "1 avocado, kimchi, and some macadamia nuts",
                 "simulated": false
@@ -603,7 +625,7 @@
         "timestamp": "2026-02-11T18:00:00Z",
         "entries": [
             {
-                "id": "0280fe9f-258e-4d4b-b38b-17bcfeca823b",
+                "id": "6a42af55-d3c4-454e-8674-bcb04aaf9321",
                 "key": "keto_snack",
                 "value": "1 avocado, kimchi, and some macadamia nuts",
                 "simulated": false
@@ -755,7 +777,7 @@
         "timestamp": "2026-02-12T18:00:00Z",
         "entries": [
             {
-                "id": "22e01587-c93d-4627-a499-d9f2d7a71a49",
+                "id": "e0656860-bfbb-442f-94bc-b23e03074756",
                 "key": "keto_snack",
                 "value": "1 avocado, kimchi, and some macadamia nuts",
                 "simulated": false
@@ -852,6 +874,17 @@
                 "id": "cfaa5e3e-4dbb-466f-917ce1769b69",
                 "key": "discomfort",
                 "value": 1,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-14T18:00:00Z",
+        "entries": [
+            {
+                "id": "f3e2869d-94ca-4937-afeb-37b24894caaa",
+                "key": "keto_snack",
+                "value": "1 avocado, kimchi, and some macadamia nuts",
                 "simulated": false
             }
         ]
