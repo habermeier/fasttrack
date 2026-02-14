@@ -107,7 +107,7 @@
     <script>
         async function loadData() {
             try {
-                const response = await fetch('/api/data');
+                const response = await fetch('/api/data?t=' + Date.now());
                 const data = await response.json();
                 const container = document.getElementById('data-container');
                 container.innerHTML = '';

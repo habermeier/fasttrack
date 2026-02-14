@@ -401,7 +401,15 @@ async def get_latest():
         for entry in block["entries"]:
             if entry["key"] not in latest:
                 latest[entry["key"]] = entry["value"]
-    return latest
+    # Disable caching - always fetch fresh data
+    return JSONResponse(
+        content=latest,
+        headers={
+            "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+    )
 
 @app.get("/")
 async def read_index(request: Request):
@@ -458,7 +466,15 @@ async def get_data_api():
     if not os.path.exists(DATA_FILE):
         return []
     with open(DATA_FILE, "r") as f:
-        return json.load(f)
+        data = json.load(f)
+    return JSONResponse(
+        content=data,
+        headers={
+            "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+    )
 
 @app.get("/data", response_class=PlainTextResponse)
 async def get_data_text():
