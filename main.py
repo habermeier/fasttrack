@@ -431,6 +431,10 @@ async def read_meal(request: Request):
 async def read_graph():
     return FileResponse("static/graph.html")
 
+@app.get("/show")
+async def read_show():
+    return FileResponse("static/show.html")
+
 @app.get("/api/graph")
 async def get_pure_graph(force: bool = Query(False)):
     if not regenerate_chart_if_needed(force=force) and not os.path.exists(CHART_FILE):
@@ -494,4 +498,6 @@ async def get_chart(force: bool = Query(False)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=80)
+    import os
+    port = int(os.getenv("PORT", 80))
+    uvicorn.run(app, host="0.0.0.0", port=port)

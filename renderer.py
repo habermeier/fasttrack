@@ -134,10 +134,14 @@ def generate_chart(nested_data, output_path="chart.png"):
     has_water = len(water_df) > 0
     has_body_fat = len(total_fat_df) > 0 or len(visceral_fat_df) > 0
 
-    # 6. PLOT GENERATION
+    # PLOT GENERATION
     plt.rcParams.update({'font.size': 28, 'font.family': 'sans-serif'})
-    # Target 16,000px width by default (50 in * 320 DPI).
-    chart_width = float(os.getenv('FASTTRACK_CHART_WIDTH_IN', '50'))
+    
+    # Dynamic Width Calculation: ~10 inches per day, minimum 50 inches.
+    total_days = max(1, (df['timestamp'].max() - df['timestamp'].min()).total_seconds() / 86400)
+    default_dynamic_width = max(50.0, total_days * 10.0)
+    
+    chart_width = float(os.getenv('FASTTRACK_CHART_WIDTH_IN', str(default_dynamic_width)))
     chart_height = float(os.getenv('FASTTRACK_CHART_HEIGHT_IN', '18.75'))
     chart_dpi = int(os.getenv('FASTTRACK_CHART_DPI', '320'))
     fig, ax1 = plt.subplots(figsize=(chart_width, chart_height), dpi=chart_dpi)
@@ -283,7 +287,9 @@ def generate_chart(nested_data, output_path="chart.png"):
         ax1.axvspan(span_start, span_end, color='lightgreen', alpha=0.24, zorder=1)
 
     # Keep date labels legible on dense windows.
-    ax1.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=6, maxticks=9))
+    # Aim for approximately one tick every 5 inches.
+    max_ticks = max(9, int(chart_width / 5))
+    ax1.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=6, maxticks=max_ticks))
     ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     ax1.tick_params(axis='x', labelsize=22)
     plt.setp(ax1.get_xticklabels(), rotation=15, ha='right')
