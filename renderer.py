@@ -137,22 +137,28 @@ def generate_chart(nested_data, output_path="chart.png"):
     # PLOT GENERATION
     plt.rcParams.update({'font.size': 28, 'font.family': 'sans-serif', 'svg.fonttype': 'path'})
     
-    # Dynamic Width Calculation: ~6 inches per day, minimum 30 inches, hard cap at 60 inches.
-    total_days = max(1, (df['timestamp'].max() - df['timestamp'].min()).total_seconds() / 86400)
-    max_width_cap = 60.0
-    default_dynamic_width = min(max_width_cap, max(30.0, total_days * 6.0))
+    # Dynamic Width Calculation:
+    # 1. Allocate fixed horizontal space (inches) for the margins/axes/legend block.
+    #    Left (Glucose): ~2", Right 1&2 (Ketones/Weight): ~8", Right 3 (Fat): ~4", Right 4 (Water): ~4"
+    axis_margin_inches = 10.0 + (4.0 if has_body_fat else 0) + (4.0 if has_water else 0)
     
-    chart_width = float(os.getenv('FASTTRACK_CHART_WIDTH_IN', str(default_dynamic_width)))
+    # 2. Calculate ideal plot area based on days (5 inches per day).
+    total_days = max(1, (df['timestamp'].max() - df['timestamp'].min()).total_seconds() / 86400)
+    target_plot_inches = total_days * 5.0
+    
+    # 3. Final width is plot + margins, capped at 60" for mobile browser safety.
+    max_total_width = 60.0
+    chart_width = min(max_total_width, target_plot_inches + axis_margin_inches)
+    
+    # 4. Convert absolute inch margins back to percentages for Matplotlib.
+    left_margin_pct = 2.0 / chart_width
+    right_margin_pct = 1.0 - ((axis_margin_inches - 2.0) / chart_width)
+    
     chart_height = float(os.getenv('FASTTRACK_CHART_HEIGHT_IN', '18.75'))
     chart_dpi = int(os.getenv('FASTTRACK_CHART_DPI', '320'))
     fig, ax1 = plt.subplots(figsize=(chart_width, chart_height), dpi=chart_dpi)
-    if has_water and has_body_fat:
-        plot_right = 0.58
-    elif has_water or has_body_fat:
-        plot_right = 0.68
-    else:
-        plot_right = 0.80
-    plt.subplots_adjust(right=plot_right, left=0.06, top=0.96, bottom=0.1)
+    
+    plt.subplots_adjust(right=right_margin_pct, left=left_margin_pct, top=0.96, bottom=0.1)
 
     # Primary Axis: Glucose
     ax1.set_ylabel('Glucose (mg/dL) [Measured]', color='#d62728', fontweight='bold', fontsize=36)
