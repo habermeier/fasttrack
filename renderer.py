@@ -135,11 +135,11 @@ def generate_chart(nested_data, output_path="chart.png"):
     has_body_fat = len(total_fat_df) > 0 or len(visceral_fat_df) > 0
 
     # PLOT GENERATION
-    plt.rcParams.update({'font.size': 28, 'font.family': 'sans-serif'})
+    plt.rcParams.update({'font.size': 28, 'font.family': 'sans-serif', 'svg.fonttype': 'path'})
     
-    # Dynamic Width Calculation: ~10 inches per day, minimum 50 inches.
+    # Dynamic Width Calculation: ~6 inches per day, minimum 50 inches.
     total_days = max(1, (df['timestamp'].max() - df['timestamp'].min()).total_seconds() / 86400)
-    default_dynamic_width = max(50.0, total_days * 10.0)
+    default_dynamic_width = max(50.0, total_days * 6.0)
     
     chart_width = float(os.getenv('FASTTRACK_CHART_WIDTH_IN', str(default_dynamic_width)))
     chart_height = float(os.getenv('FASTTRACK_CHART_HEIGHT_IN', '18.75'))
@@ -306,3 +306,14 @@ def generate_chart(nested_data, output_path="chart.png"):
     )
     plt.savefig(output_path, dpi=chart_dpi)
     plt.close()
+
+    # Post-process SVG to remove absolute width/height for better mobile responsiveness
+    if output_path.endswith('.svg'):
+        import re
+        with open(output_path, 'r') as f:
+            content = f.read()
+        # Remove width="..." and height="..." from the <svg> tag
+        content = re.sub(r'(<svg [^>]*?)width="[^"]*"', r'\1', content)
+        content = re.sub(r'(<svg [^>]*?)height="[^"]*"', r'\1', content)
+        with open(output_path, 'w') as f:
+            f.write(content)
