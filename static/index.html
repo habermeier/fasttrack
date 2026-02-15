@@ -368,9 +368,6 @@
                     <label class="field-label">Ketones</label>
                     <span class="field-value" id="value-ketones">0.0 mmol/L</span>
                 </div>
-                <div class="ketone-hi-toggle">
-                    <button type="button" class="toggle-btn" id="hi-toggle">HI (Max)</button>
-                </div>
                 <input type="text" id="ketones" inputmode="decimal">
                 <div class="ruler-picker" id="ruler-ketones">
                     <div class="ruler-marker"></div>
@@ -491,24 +488,8 @@
         setInterval(updateTime, 1000);
         updateTime();
 
-        // HI Toggle for Ketones
-        const hiToggle = document.getElementById('hi-toggle');
         const ketoneInput = document.getElementById('ketones');
         const ketoneValue = document.getElementById('value-ketones');
-
-        hiToggle.addEventListener('click', () => {
-            hiToggle.classList.toggle('active');
-            if (hiToggle.classList.contains('active')) {
-                ketoneInput.value = "HI";
-                ketoneValue.textContent = "HI mmol/L";
-                ketoneInput.disabled = true;
-            } else {
-                ketoneInput.value = "";
-                ketoneInput.disabled = false;
-                const val = parseFloat(ketoneInput.value) || 0;
-                ketoneValue.textContent = `${val.toFixed(1)} mmol/L`;
-            }
-        });
 
         // Load Config and Latest Data
         function generateUUID() {
@@ -597,16 +578,7 @@
                 const initialVisceralFat = latest.visceral_fat || 10;
                 const initialDiscomfort = latest.discomfort || 0;
 
-                if (latest.ketones) {
-                    if (latest.ketones >= 8) {
-                        ketoneInput.value = "HI";
-                        hiToggle.classList.add('active');
-                        ketoneInput.disabled = true;
-                        ketoneValue.textContent = "HI mmol/L";
-                    } else {
-                        ketoneInput.value = latest.ketones;
-                    }
-                }
+                if (latest.ketones) document.getElementById('ketones').value = latest.ketones;
 
                 if (latest.glucose) document.getElementById('glucose').value = latest.glucose;
                 if (latest.body_weight) document.getElementById('body_weight').value = latest.body_weight;
@@ -682,7 +654,7 @@
                 const entries = [];
 
                 // Collect values
-                const ketonesVal = ketoneInput.value === "HI" ? 8.0 : parseFloat(ketoneInput.value);
+                const ketonesVal = parseFloat(ketoneInput.value);
                 const glucoseVal = parseFloat(document.getElementById('glucose').value);
                 const weightVal = parseFloat(document.getElementById('body_weight').value);
                 const totalFatVal = parseFloat(document.getElementById('total_fat').value);

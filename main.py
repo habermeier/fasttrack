@@ -87,6 +87,7 @@ app.add_middleware(CookieRotationMiddleware)
 
 DATA_FILE = "telemetry.json"
 CHART_FILE = "chart.png"
+CHART_FILE_SVG = "chart.svg"
 SALT = "SALT"
 LOCK = threading.Lock()
 
@@ -195,6 +196,7 @@ def run_updates(new_data, message: str):
             json.dump(new_data, f, indent=4)
         try:
             renderer.generate_chart(new_data, CHART_FILE)
+            renderer.generate_chart(new_data, CHART_FILE_SVG)
         except Exception as e:
             print(f"Chart generation failed: {e}")
         git_sync(message)
@@ -204,15 +206,18 @@ def regenerate_chart_if_needed(force: bool = False) -> bool:
     if not os.path.exists(DATA_FILE):
         return False
 
-    chart_missing = not os.path.exists(CHART_FILE)
+    chart_missing = not os.path.exists(CHART_FILE) or not os.path.exists(CHART_FILE_SVG)
     chart_stale = False
     if not chart_missing:
-        chart_stale = os.path.getmtime(CHART_FILE) < os.path.getmtime(DATA_FILE)
+        data_mtime = os.path.getmtime(DATA_FILE)
+        chart_stale = (os.path.getmtime(CHART_FILE) < data_mtime or 
+                       os.path.getmtime(CHART_FILE_SVG) < data_mtime)
 
     if force or chart_missing or chart_stale:
         with open(DATA_FILE, "r") as f:
             data = json.load(f)
         renderer.generate_chart(data, CHART_FILE)
+        renderer.generate_chart(data, CHART_FILE_SVG)
         reason = "forced" if force else ("missing" if chart_missing else "stale")
         print(f"[{dt.now()}] INFO: Chart regenerated ({reason}).")
         return True
@@ -450,6 +455,23 @@ async def get_pure_graph(force: bool = Query(False)):
     # Disable caching - always fetch fresh chart
     return FileResponse(
         CHART_FILE,
+        media_type="image/png",
+        headers={
+            "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "Surrogate-Control": "no-store"
+        }
+    )
+
+@app.get("/api/graph.svg")
+async def get_svg_graph(force: bool = Query(False)):
+    if not regenerate_chart_if_needed(force=force) and not os.path.exists(CHART_FILE_SVG):
+        raise HTTPException(status_code=404, detail="Chart not found")
+    # Disable caching - always fetch fresh chart
+    return FileResponse(
+        CHART_FILE_SVG,
+        media_type="image/svg+xml",
         headers={
             "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
             "Pragma": "no-cache",
@@ -504,6 +526,7 @@ async def get_chart(force: bool = Query(False)):
     # Disable caching - always fetch fresh chart
     return FileResponse(
         CHART_FILE,
+        media_type="image/png",
         headers={
             "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
             "Pragma": "no-cache",
