@@ -416,18 +416,6 @@
 
             <div class="field-group">
                 <div class="field-header">
-                    <label class="field-label">Visceral Fat</label>
-                    <span class="field-value" id="value-visceral_fat">0.0</span>
-                </div>
-                <input type="number" id="visceral_fat" step="0.1" inputmode="decimal">
-                <div class="ruler-picker" id="ruler-visceral_fat">
-                    <div class="ruler-marker"></div>
-                    <div class="ruler-container"></div>
-                </div>
-            </div>
-
-            <div class="field-group">
-                <div class="field-header">
                     <label class="field-label">Water %</label>
                     <span class="field-value" id="value-water_percent">60.0 <span class="unit">%</span></span>
                 </div>
@@ -440,10 +428,22 @@
 
             <div class="field-group">
                 <div class="field-header">
-                    <label class="field-label">Discomfort Level</label>
-                    <span class="field-value" id="value-discomfort">0.0 / 10</span>
+                    <label class="field-label">Visceral Fat</label>
+                    <span class="field-value" id="value-visceral_fat">0.0</span>
                 </div>
-                <input type="number" id="discomfort" min="0" max="10" step="0.1" inputmode="decimal">
+                <input type="number" id="visceral_fat" step="0.1" inputmode="decimal">
+                <div class="ruler-picker" id="ruler-visceral_fat">
+                    <div class="ruler-marker"></div>
+                    <div class="ruler-container"></div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-header">
+                    <label class="field-label">Discomfort Level</label>
+                    <span class="field-value" id="value-discomfort">0 / 10</span>
+                </div>
+                <input type="number" id="discomfort" min="0" max="10" step="1" inputmode="numeric">
                 <div class="ruler-picker" id="ruler-discomfort">
                     <div class="ruler-marker"></div>
                     <div class="ruler-container"></div>
@@ -546,7 +546,7 @@
                 if (inputId === 'glucose') {
                     display.textContent = `${Math.round(val)} ${unit}`;
                 } else if (inputId === 'discomfort') {
-                    display.textContent = `${val.toFixed(1)} / 10`;
+                    display.textContent = `${Math.round(val)} / 10`;
                 } else if (inputId === 'visceral_fat') {
                     display.textContent = `${val.toFixed(1)}`;
                 } else {
@@ -625,7 +625,7 @@
                 if (latest.water_percent) document.getElementById('water_percent').value = latest.water_percent;
                 initRuler('ruler-water_percent', 45, 75, 0.1, initialWaterPercent, 'water_percent', 'value-water_percent', '%');
 
-                initRuler('ruler-discomfort', 0, 10, 0.1, initialDiscomfort, 'discomfort', 'value-discomfort', '');
+                initRuler('ruler-discomfort', 0, 10, 1, initialDiscomfort, 'discomfort', 'value-discomfort', '');
 
             } catch (err) {
                 console.error("Initialization failed", err);

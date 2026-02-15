@@ -11,7 +11,7 @@ if [ ! -f "renderer.py" ]; then
 fi
 
 # Run Python to regenerate
-python3 << 'PYEOF'
+venv/bin/python3 << 'PYEOF'
 import json
 import renderer
 
