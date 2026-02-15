@@ -855,5 +855,199 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-02-14T15:27:56.524Z",
+        "entries": [
+            {
+                "id": "3dfe7f5a-770c-476f-a413c62b1537",
+                "key": "ketones",
+                "value": 6,
+                "simulated": false
+            },
+            {
+                "id": "c6f1bd3a-0608-4941-b69fad39444b",
+                "key": "glucose",
+                "value": 90,
+                "simulated": false
+            },
+            {
+                "id": "b1df31f0-deca-422b-804f9f70af66",
+                "key": "body_weight",
+                "value": 215.4,
+                "simulated": false
+            },
+            {
+                "id": "12b32ea8-e310-48ea-b87d88bfabdc",
+                "key": "total_fat",
+                "value": 27.5,
+                "simulated": false
+            },
+            {
+                "id": "12ba42c9-23b9-4ab3-b5bcaaf4d5c8",
+                "key": "visceral_fat",
+                "value": 5.2,
+                "simulated": false
+            },
+            {
+                "id": "693c406f-fde2-4ddf-b8a7fbae9bd7",
+                "key": "water_percent",
+                "value": 47.3,
+                "simulated": false
+            },
+            {
+                "id": "0a31d435-2c93-4615-9bf8bf77d317",
+                "key": "discomfort",
+                "value": 1,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-14T21:18:19.264Z",
+        "entries": [
+            {
+                "id": "83ed2ded-3184-4b38-a05136fbadc2",
+                "key": "ketones",
+                "value": 7.6,
+                "simulated": false
+            },
+            {
+                "id": "605efa5d-6223-4c54-82a10eb76d02",
+                "key": "glucose",
+                "value": 80,
+                "simulated": false
+            },
+            {
+                "id": "8d226c2f-4685-4b6b-a755dfc65f9f",
+                "key": "body_weight",
+                "value": 215.9,
+                "simulated": false
+            },
+            {
+                "id": "62877c67-6ecf-4055-8913b6e4fe7e",
+                "key": "total_fat",
+                "value": 27.5,
+                "simulated": false
+            },
+            {
+                "id": "c72513df-03ea-4435-8cc8a68c8348",
+                "key": "visceral_fat",
+                "value": 5.2,
+                "simulated": false
+            },
+            {
+                "id": "2cd9cb6c-7af2-4e26-940fb364a8fe",
+                "key": "water_percent",
+                "value": 48,
+                "simulated": false
+            },
+            {
+                "id": "dfd57349-6faf-431a-a6767e157678",
+                "key": "discomfort",
+                "value": 1,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-15T03:53:09.763Z",
+        "entries": [
+            {
+                "id": "b04a691e-5b2e-48eb-a89acd246ab3",
+                "key": "ketones",
+                "value": 8,
+                "simulated": false
+            },
+            {
+                "id": "168262fa-b622-42c6-9b3156d0d759",
+                "key": "glucose",
+                "value": 79,
+                "simulated": false
+            },
+            {
+                "id": "ca7e3cf0-201c-4dc9-9296b8e2b13b",
+                "key": "body_weight",
+                "value": 218.9,
+                "simulated": false
+            },
+            {
+                "id": "f91fad0c-b652-4562-8db550f9281d",
+                "key": "total_fat",
+                "value": 28.1,
+                "simulated": false
+            },
+            {
+                "id": "15e1d98f-a3ff-4ed3-adb455040936",
+                "key": "visceral_fat",
+                "value": 5.4,
+                "simulated": false
+            },
+            {
+                "id": "c8ada779-e6fb-4da5-b6a512d2e0a0",
+                "key": "water_percent",
+                "value": 47.3,
+                "simulated": false
+            },
+            {
+                "id": "72a1df93-714c-42da-aafd78248d1f",
+                "key": "discomfort",
+                "value": 1,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-15T17:59:42.875Z",
+        "entries": [
+            {
+                "id": "31817e93-609f-4137-a84cad8ee635",
+                "key": "ketones",
+                "value": 6.7,
+                "simulated": false
+            },
+            {
+                "id": "995d213d-9afa-4022-a1b43e0ed422",
+                "key": "glucose",
+                "value": 90,
+                "simulated": false
+            },
+            {
+                "id": "f6400696-c783-4dd2-a9848ee7afcf",
+                "key": "body_weight",
+                "value": 212.4,
+                "simulated": false
+            },
+            {
+                "id": "052708ca-7af6-45d0-a21c6931e28a",
+                "key": "total_fat",
+                "value": 27,
+                "simulated": false
+            },
+            {
+                "id": "5e2bf630-d785-4ec1-b86298678122",
+                "key": "visceral_fat",
+                "value": 5.1,
+                "simulated": false
+            },
+            {
+                "id": "80169d27-96a6-459f-acac4759341f",
+                "key": "water_percent",
+                "value": 47.6,
+                "simulated": false
+            },
+            {
+                "id": "87efcdf7-9dce-4035-b49f4c18aa92",
+                "key": "discomfort",
+                "value": 5.6,
+                "simulated": false
+            },
+            {
+                "id": "e9548780-2430-49ff-b26ea24e790a",
+                "key": "discomfort_notes",
+                "value": "I feel nauseous have been bringing in the ears",
+                "simulated": false
+            }
+        ]
     }
 ]
