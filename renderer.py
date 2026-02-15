@@ -137,9 +137,10 @@ def generate_chart(nested_data, output_path="chart.png"):
     # PLOT GENERATION
     plt.rcParams.update({'font.size': 28, 'font.family': 'sans-serif', 'svg.fonttype': 'path'})
     
-    # Dynamic Width Calculation: ~6 inches per day, minimum 50 inches.
+    # Dynamic Width Calculation: ~6 inches per day, minimum 30 inches, hard cap at 60 inches.
     total_days = max(1, (df['timestamp'].max() - df['timestamp'].min()).total_seconds() / 86400)
-    default_dynamic_width = max(50.0, total_days * 6.0)
+    max_width_cap = 60.0
+    default_dynamic_width = min(max_width_cap, max(30.0, total_days * 6.0))
     
     chart_width = float(os.getenv('FASTTRACK_CHART_WIDTH_IN', str(default_dynamic_width)))
     chart_height = float(os.getenv('FASTTRACK_CHART_HEIGHT_IN', '18.75'))
