@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=fasttrack
 WorkingDirectory=/home/fasttrack/app
-Environment="PATH=/home/fasttrack/app/venv/bin"
+Environment="PATH=/home/fasttrack/app/venv/bin:/usr/bin:/bin"
 ExecStart=/home/fasttrack/app/venv/bin/python3 /home/fasttrack/app/main.py
 Restart=always
 RestartSec=3
