@@ -1096,5 +1096,58 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-02-16T00:24:50.043Z",
+        "entries": [
+            {
+                "id": "ba019171-2418-4d7f-9cd5ecfae8ef",
+                "key": "ketones",
+                "value": 8,
+                "simulated": false
+            },
+            {
+                "id": "8c4dbca0-3c08-4c87-a9ca45a09c09",
+                "key": "glucose",
+                "value": 93,
+                "simulated": false
+            },
+            {
+                "id": "58a3fb3c-8888-4baf-80f59bf94763",
+                "key": "body_weight",
+                "value": 213.5,
+                "simulated": false
+            },
+            {
+                "id": "0d2cea34-5670-413b-99c8e1e67712",
+                "key": "total_fat",
+                "value": 27.1,
+                "simulated": false
+            },
+            {
+                "id": "ea548ee0-9d24-42ad-8a3e0ee79b07",
+                "key": "visceral_fat",
+                "value": 5.1,
+                "simulated": false
+            },
+            {
+                "id": "0148db15-35b2-4edb-901c72d92b97",
+                "key": "water_percent",
+                "value": 48.2,
+                "simulated": false
+            },
+            {
+                "id": "fa530c01-6dd0-451f-92f333bd4739",
+                "key": "discomfort",
+                "value": 7,
+                "simulated": false
+            },
+            {
+                "id": "82f8e3b6-4d2e-4fd9-93232bf9d303",
+                "key": "notes",
+                "value": "Feeling shaky ",
+                "simulated": false
+            }
+        ]
     }
 ]
