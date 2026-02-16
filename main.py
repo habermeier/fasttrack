@@ -23,6 +23,7 @@ from datetime import datetime as dt
 # Note: Using print() instead of logging for better systemd visibility
 
 app = FastAPI()
+print(f"[{dt.now()}] INFO: FastTrack Server starting up...")
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
