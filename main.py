@@ -318,7 +318,14 @@ async def get_telemetry(
             return []
         with open(DATA_FILE, "r") as f:
             data = json.load(f)
-        return localize_telemetry(data)
+        return JSONResponse(
+            content=localize_telemetry(data),
+            headers={
+                "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        )
 
     # WRITE operations (Auth required)
     verify_auth(request)
@@ -526,7 +533,14 @@ async def get_data_text():
         return "[]\n"
     with open(DATA_FILE, "r") as f:
         data = json.load(f)
-    return json.dumps(localize_telemetry(data), indent=2) + "\n"
+    return PlainTextResponse(
+        content=json.dumps(localize_telemetry(data), indent=2) + "\n",
+        headers={
+            "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+    )
 
 @app.get("/llms.txt")
 async def get_llms_txt():
