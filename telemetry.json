@@ -1149,5 +1149,27 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-02-16T00:24:59.542Z",
+        "entries": [
+            {
+                "id": "d4824a12-7ec8-498d-86f3-f67b0362f9b5",
+                "key": "keto_snack",
+                "value": "Kimchi",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-16T03:06:17.466Z",
+        "entries": [
+            {
+                "id": "5f5f0845-6a23-4f7a-8951-28106902973f",
+                "key": "keto_snack",
+                "value": "Avocado\nKimchi\nMacadamia nuts",
+                "simulated": false
+            }
+        ]
     }
 ]
