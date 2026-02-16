@@ -10,15 +10,25 @@ from scipy.interpolate import PchipInterpolator
 import os
 
 def generate_chart(nested_data, output_path="chart.png"):
-    # 1. TEMPORAL ANCHOR
+    # 1. TEMPORAL ANCHOR (Start in local Pacific time)
+    # Start time is 2026-01-28 18:00 (already understood as PST)
     start_time = datetime(2026, 1, 28, 18, 0)
-    generated_at_utc = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    # Get current time in PST (UTC-8)
+    pst_offset = timedelta(hours=-8)
+    now_pst = datetime.utcnow() + pst_offset
+    generated_at_pst = now_pst.strftime("%Y-%m-%d %H:%M:%S PST")
 
     # --- REFRESHED ENGINE LOGIC ---
     def flatten_data(nested):
         rows = []
         for block in nested:
-            ts = pd.to_datetime(block["timestamp"])
+            # Parse UTC timestamp from JSON
+            ts_utc = pd.to_datetime(block["timestamp"])
+            # Convert to PST (UTC-8)
+            ts_pst = ts_utc + pd.Timedelta(hours=-8)
+            # Use timezone-naive PST for plotting consistency
+            ts = ts_pst.replace(tzinfo=None)
+            
             row = {"timestamp": ts}
             for entry in block["entries"]:
                 row[entry["key"]] = entry["value"]
@@ -304,7 +314,7 @@ def generate_chart(nested_data, output_path="chart.png"):
     fig.text(
         0.995,
         0.01,
-        f"Generated: {generated_at_utc}",
+        f"Generated: {generated_at_pst}",
         ha='right',
         va='bottom',
         fontsize=20,

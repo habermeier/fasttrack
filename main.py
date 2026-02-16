@@ -89,6 +89,7 @@ DATA_FILE = "telemetry.json"
 CHART_FILE = "chart.png"
 CHART_FILE_SVG = "chart.svg"
 SALT = "SALT"
+PST_OFFSET_HOURS = -8
 LOCK = threading.Lock()
 
 # Cookie-based authentication
@@ -316,7 +317,8 @@ async def get_telemetry(
         if not os.path.exists(DATA_FILE):
             return []
         with open(DATA_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+        return localize_telemetry(data)
 
     # WRITE operations (Auth required)
     verify_auth(request)
@@ -382,11 +384,29 @@ async def get_telemetry(
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
 
+def localize_telemetry(data):
+    """Convert UTC ISO timestamps to Pacific Time for display."""
+    localized = []
+    for block in data:
+        new_block = block.copy()
+        try:
+            # Parse UTC timestamp
+            dt_utc = pd.to_datetime(block["timestamp"])
+            # Convert to PST manually
+            dt_pst = dt_utc + pd.Timedelta(hours=PST_OFFSET_HOURS)
+            new_block["timestamp"] = dt_pst.strftime("%Y-%m-%dT%H:%M:%S") + " PST"
+        except Exception:
+            pass
+        localized.append(new_block)
+    return localized
+
 @app.get("/api/config")
 async def get_config():
+    now_pst = datetime.utcnow() + timedelta(hours=PST_OFFSET_HOURS)
     return {
         "sillykey": get_sillykey(),
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp_pst": now_pst.strftime("%Y-%m-%d %H:%M:%S PST")
     }
 
 @app.get("/api/latest")
@@ -490,7 +510,7 @@ async def get_data_api():
     with open(DATA_FILE, "r") as f:
         data = json.load(f)
     return JSONResponse(
-        content=data,
+        content=localize_telemetry(data),
         headers={
             "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
             "Pragma": "no-cache",
@@ -505,7 +525,7 @@ async def get_data_text():
         return "[]\n"
     with open(DATA_FILE, "r") as f:
         data = json.load(f)
-    return json.dumps(data, indent=2) + "\n"
+    return json.dumps(localize_telemetry(data), indent=2) + "\n"
 
 @app.get("/llms.txt")
 async def get_llms_txt():
