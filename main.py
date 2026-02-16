@@ -404,7 +404,8 @@ def localize_telemetry(data):
             dt_pst = dt_utc + pd.Timedelta(hours=PST_OFFSET_HOURS)
             # Human friendly: "Feb 15, 10:00 AM PST"
             new_block["timestamp"] = dt_pst.strftime("%b %d, %I:%M %p PST")
-        except Exception:
+        except Exception as e:
+            print(f"[{dt.now()}] ERROR: Localize failed for {block.get('timestamp')}: {e}")
             pass
         localized.append(new_block)
     return localized
