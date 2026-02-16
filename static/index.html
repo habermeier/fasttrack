@@ -529,29 +529,39 @@
             };
 
             let isScrolling = false;
+            let scrollTimeout;
+
             container.addEventListener('scroll', () => {
                 if (isScrolling) return;
-                const index = Math.round(container.scrollLeft / itemWidth);
-                const val = parseFloat((min + index * step).toFixed(1));
-                if (input.value != val) {
-                    input.value = val;
-                    updateDisplay(val);
-                }
+                
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    const index = Math.round(container.scrollLeft / itemWidth);
+                    const val = parseFloat((min + index * step).toFixed(1));
+                    if (input.value != val) {
+                        input.value = val;
+                        updateDisplay(val);
+                        // Trigger input event for auto-save
+                        input.dispatchEvent(new Event('input'));
+                    }
+                }, 50);
             });
 
             input.addEventListener('input', () => {
+                if (isScrolling) return;
                 isScrolling = true;
                 const val = parseFloat(input.value) || min;
                 scrollToValue(val);
                 updateDisplay(val);
-                setTimeout(() => { isScrolling = false; }, 100);
+                setTimeout(() => { isScrolling = false; }, 150);
             });
 
             // Initial position and display
             setTimeout(() => {
-                scrollToValue(initialValue || min);
-                updateDisplay(initialValue || min);
-            }, 100);
+                const startVal = parseFloat(input.value) || initialValue || min;
+                scrollToValue(startVal);
+                updateDisplay(startVal);
+            }, 300);
         }
 
         async function init() {
@@ -584,12 +594,8 @@
                 initRuler('ruler-glucose', 40, 200, 1, initialGlucose, 'glucose', 'value-glucose', 'mg/dL');
                 initRuler('ruler-body_weight', 150, 300, 0.1, initialWeight, 'body_weight', 'value-body_weight', 'lbs');
                 initRuler('ruler-total_fat', 5, 50, 0.1, initialTotalFat, 'total_fat', 'value-total_fat', '%');
-                initRuler('ruler-visceral_fat', 1, 30, 0.1, initialVisceralFat, 'visceral_fat', 'value-visceral_fat', '');
-
-                const initialWaterPercent = latest.water_percent || 60;
-                if (latest.water_percent) document.getElementById('water_percent').value = latest.water_percent;
                 initRuler('ruler-water_percent', 45, 75, 0.1, initialWaterPercent, 'water_percent', 'value-water_percent', '%');
-
+                initRuler('ruler-visceral_fat', 1, 30, 0.1, initialVisceralFat, 'visceral_fat', 'value-visceral_fat', '');
                 initRuler('ruler-discomfort', 0, 10, 1, initialDiscomfort, 'discomfort', 'value-discomfort', '');
 
             } catch (err) {
@@ -597,8 +603,8 @@
                 showStatus("Error loading latest data", true);
             }
 
-            // Auto-save form to localStorage
-            setupAutoSave();
+            // Auto-save form to localStorage (Restore saved values AFTER ruler init if they exist)
+            setTimeout(setupAutoSave, 500);
         }
 
         function setupAutoSave() {
@@ -607,9 +613,13 @@
             // Restore saved values
             fields.forEach(field => {
                 const saved = localStorage.getItem(`form_${field}`);
-                if (saved !== null) {
+                if (saved !== null && saved !== "") {
                     const el = document.getElementById(field);
-                    if (el) el.value = saved;
+                    if (el) {
+                        el.value = saved;
+                        // Trigger input event to sync ruler
+                        el.dispatchEvent(new Event('input'));
+                    }
                 }
             });
 
