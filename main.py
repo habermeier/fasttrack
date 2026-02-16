@@ -385,7 +385,7 @@ async def get_telemetry(
         raise HTTPException(status_code=400, detail="Invalid action")
 
 def localize_telemetry(data):
-    """Convert UTC ISO timestamps to Pacific Time for display."""
+    """Convert UTC ISO timestamps to a human-friendly Pacific Time string."""
     localized = []
     for block in data:
         new_block = block.copy()
@@ -394,7 +394,8 @@ def localize_telemetry(data):
             dt_utc = pd.to_datetime(block["timestamp"])
             # Convert to PST manually
             dt_pst = dt_utc + pd.Timedelta(hours=PST_OFFSET_HOURS)
-            new_block["timestamp"] = dt_pst.strftime("%Y-%m-%dT%H:%M:%S") + " PST"
+            # Human friendly: "Feb 15, 10:00 AM PST"
+            new_block["timestamp"] = dt_pst.strftime("%b %d, %I:%M %p PST")
         except Exception:
             pass
         localized.append(new_block)
@@ -406,7 +407,7 @@ async def get_config():
     return {
         "sillykey": get_sillykey(),
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "timestamp_pst": now_pst.strftime("%Y-%m-%d %H:%M:%S PST")
+        "timestamp_pst": now_pst.strftime("%b %d, %Y • %I:%M %p PST")
     }
 
 @app.get("/api/latest")

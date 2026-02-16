@@ -16,7 +16,7 @@ def generate_chart(nested_data, output_path="chart.png"):
     # Get current time in PST (UTC-8)
     pst_offset = timedelta(hours=-8)
     now_pst = datetime.utcnow() + pst_offset
-    generated_at_pst = now_pst.strftime("%Y-%m-%d %H:%M:%S PST")
+    generated_at_pst = now_pst.strftime("%b %d, %Y • %I:%M %p PST")
 
     # --- REFRESHED ENGINE LOGIC ---
     def flatten_data(nested):
