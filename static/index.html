@@ -578,6 +578,7 @@
                 const initialGlucose = latest.glucose || 90;
                 const initialWeight = latest.body_weight || 220;
                 const initialTotalFat = latest.total_fat || 25;
+                const initialWaterPercent = latest.water_percent || 60;
                 const initialVisceralFat = latest.visceral_fat || 10;
                 const initialDiscomfort = latest.discomfort || 0;
 
@@ -586,6 +587,7 @@
                 if (latest.glucose) document.getElementById('glucose').value = latest.glucose;
                 if (latest.body_weight) document.getElementById('body_weight').value = latest.body_weight;
                 if (latest.total_fat) document.getElementById('total_fat').value = latest.total_fat;
+                if (latest.water_percent) document.getElementById('water_percent').value = latest.water_percent;
                 if (latest.visceral_fat) document.getElementById('visceral_fat').value = latest.visceral_fat;
                 if (latest.discomfort) document.getElementById('discomfort').value = latest.discomfort;
 
