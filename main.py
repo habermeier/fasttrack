@@ -7,6 +7,7 @@ import os
 import hashlib
 import secrets
 from datetime import datetime
+import pandas as pd
 import uuid
 import subprocess
 import renderer
