@@ -112,12 +112,16 @@ def get_latched_keys():
         with open(KEY_FILE, "r") as f:
             data = json.load(f)
             return data.get("keys", [])
-    except (json.JSONDecodeError, KeyError):
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"[{dt.now()}] WARN: Failed to parse key file ({e}), attempting legacy format.")
         # Legacy format - single key as plain text
-        with open(KEY_FILE, "r") as f:
-            legacy_key = f.read().strip()
-            if legacy_key:
-                return [legacy_key]
+        try:
+            with open(KEY_FILE, "r") as f:
+                legacy_key = f.read().strip()
+                if legacy_key:
+                    return [legacy_key]
+        except Exception as e2:
+            print(f"[{dt.now()}] ERROR: Failed to read legacy key file: {e2}")
         return []
 
 def save_latched_key(new_key: str):
@@ -195,14 +199,23 @@ def git_sync(message: str):
 
 def run_updates(new_data, message: str):
     with LOCK:
-        with open(DATA_FILE, "w") as f:
-            json.dump(new_data, f, indent=4)
+        try:
+            with open(DATA_FILE, "w") as f:
+                json.dump(new_data, f, indent=4)
+        except Exception as e:
+            print(f"[{dt.now()}] ERROR: Failed to write telemetry data: {e}")
+            return
+
         try:
             renderer.generate_chart(new_data, CHART_FILE)
             renderer.generate_chart(new_data, CHART_FILE_SVG)
         except Exception as e:
-            print(f"Chart generation failed: {e}")
-        git_sync(message)
+            print(f"[{dt.now()}] ERROR: Chart generation failed: {e}")
+        
+        try:
+            git_sync(message)
+        except Exception as e:
+            print(f"[{dt.now()}] ERROR: Git sync failed: {e}")
 
 def regenerate_chart_if_needed(force: bool = False) -> bool:
     """Regenerate chart when missing/stale, or always when forced."""
@@ -342,6 +355,7 @@ async def get_telemetry(
         try:
             val = float(value)
         except ValueError:
+            # Expected for notes/text entries, no logging needed
             val = value
 
         entry = {
@@ -377,12 +391,14 @@ async def get_telemetry(
         if request.method == "POST":
             try:
                 new_data = await request.json()
-            except Exception:
+            except Exception as e:
+                print(f"[{dt.now()}] ERROR: Failed to parse batch JSON body: {e}")
                 raise HTTPException(status_code=400, detail="Invalid JSON body")
         elif payload:
             try:
                 new_data = json.loads(payload)
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
+                print(f"[{dt.now()}] ERROR: Failed to parse batch payload param: {e}")
                 raise HTTPException(status_code=400, detail="Invalid JSON payload")
         else:
             raise HTTPException(status_code=400, detail="Missing payload")
