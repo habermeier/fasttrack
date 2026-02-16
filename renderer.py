@@ -53,7 +53,10 @@ def generate_chart(nested_data, output_path="chart.png"):
     df['gki'] = df.apply(lambda r: (r['glucose'] / 18.016) / r['ketones'] if pd.notnull(r['glucose']) and pd.notnull(r['ketones']) else np.nan, axis=1)
 
     # 3. INTERPOLATION ENGINE (PCHIP for chemistry)
-    sim_hours = np.linspace(df['hours_elapsed'].min(), df['hours_elapsed'].max(), 1000)
+    # Simulate up to the current time in PST
+    end_time_pst = now_pst.replace(tzinfo=None)
+    max_hour = (end_time_pst - start_time).total_seconds() / 3600
+    sim_hours = np.linspace(df['hours_elapsed'].min(), max_hour, 1000)
     sim_dates = [start_time + timedelta(hours=h) for h in sim_hours]
 
     def get_pchip(sub_df, y_column, target_x):
@@ -310,6 +313,9 @@ def generate_chart(nested_data, output_path="chart.png"):
     ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     ax1.tick_params(axis='x', labelsize=22)
     plt.setp(ax1.get_xticklabels(), rotation=15, ha='right')
+
+    # Explicitly set x-axis limits to end at "now" in PST
+    ax1.set_xlim(start_time, now_pst.replace(tzinfo=None))
 
     fig.text(
         0.995,
