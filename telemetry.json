@@ -1267,7 +1267,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-17T01:17:26.777Z",
+        "timestamp": "Feb 16, 05:17 PM PST",
         "entries": [
             {
                 "id": "f67953e2-b6f7-4429-9406b5e9d2bf",
@@ -1309,6 +1309,17 @@
                 "id": "16da1b69-c5ca-49d6-b0dc8eb8e673",
                 "key": "discomfort",
                 "value": 4,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-17T01:20:22.152Z",
+        "entries": [
+            {
+                "id": "e03e7048-abfb-4003-80f9-a3a1a6f37c5d",
+                "key": "keto_snack",
+                "value": "Kimchi\nCr\u00e8me fraiche\n",
                 "simulated": false
             }
         ]
