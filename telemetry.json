@@ -1,6 +1,6 @@
 [
     {
-        "timestamp": "2026-01-29T18:00:00Z",
+        "timestamp": "Jan 29, 10:00 AM PST",
         "entries": [
             {
                 "id": "a1b2c3d4-e5f6-4a5b-8c9d-e0f1a2b3c4d5",
@@ -17,7 +17,7 @@
         ]
     },
     {
-        "timestamp": "2026-01-30T16:55:00Z",
+        "timestamp": "Jan 30, 08:55 AM PST",
         "entries": [
             {
                 "id": "c3d4e5f6-a7b8-4c7d-0e1f-a2b3c4d5e6f7",
@@ -28,7 +28,7 @@
         ]
     },
     {
-        "timestamp": "2026-01-31T17:58:00Z",
+        "timestamp": "Jan 31, 09:58 AM PST",
         "entries": [
             {
                 "id": "d4e5f6a7-b8c9-4d8e-1f20-b3c4d5e6f7a8",
@@ -45,7 +45,7 @@
         ]
     },
     {
-        "timestamp": "2026-01-31T19:00:00Z",
+        "timestamp": "Jan 31, 11:00 AM PST",
         "entries": [
             {
                 "id": "f6a7b8c9-d0e1-4f0a-3142-d5e6f7a8b9c0",
@@ -62,7 +62,7 @@
         ]
     },
     {
-        "timestamp": "2026-01-31T21:48:00Z",
+        "timestamp": "Jan 31, 01:48 PM PST",
         "entries": [
             {
                 "id": "12345678-9abc-4def-0123-456789abcdef",
@@ -73,7 +73,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-01T13:01:48Z",
+        "timestamp": "Feb 01, 05:01 AM PST",
         "entries": [
             {
                 "id": "23456789-abcd-4ef0-1234-56789abcde01",
@@ -90,7 +90,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-02T10:25:12Z",
+        "timestamp": "Feb 02, 02:25 AM PST",
         "entries": [
             {
                 "id": "456789ab-cdef-4012-3456-789abcde0123",
@@ -113,7 +113,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-03T10:42:00Z",
+        "timestamp": "Feb 03, 02:42 AM PST",
         "entries": [
             {
                 "id": "789abcde-f012-4345-6789-abcde0123456",
@@ -124,7 +124,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-03T13:42:00Z",
+        "timestamp": "Feb 03, 05:42 AM PST",
         "entries": [
             {
                 "id": "89abcdef-0123-4456-789a-bcde01234567",
@@ -141,7 +141,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-04T05:51:00Z",
+        "timestamp": "Feb 03, 09:51 PM PST",
         "entries": [
             {
                 "id": "abcdef01-2345-4678-9abc-de0123456789",
@@ -158,7 +158,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-04T14:05:00Z",
+        "timestamp": "Feb 04, 06:05 AM PST",
         "entries": [
             {
                 "id": "cdef0123-4567-489a-bcde-0123456789ab",
@@ -175,7 +175,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-05T07:50:00Z",
+        "timestamp": "Feb 04, 11:50 PM PST",
         "entries": [
             {
                 "id": "ef012345-6789-4abc-def0-23456789abcd",
@@ -192,7 +192,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-05T14:43:00Z",
+        "timestamp": "Feb 05, 06:43 AM PST",
         "entries": [
             {
                 "id": "01234567-89ab-4cde-f012-456789abcdef",
@@ -209,7 +209,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-05T19:22:00Z",
+        "timestamp": "Feb 05, 11:22 AM PST",
         "entries": [
             {
                 "id": "23456789-abcd-4ef0-1234-6789abcdef01",
@@ -226,7 +226,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-05T19:45:00Z",
+        "timestamp": "Feb 05, 11:45 AM PST",
         "entries": [
             {
                 "id": "456789ab-cdef-4012-3456-89abcdef0123",
@@ -243,7 +243,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-06T01:00:00Z",
+        "timestamp": "Feb 05, 05:00 PM PST",
         "entries": [
             {
                 "id": "6789abcd-ef01-4234-5678-abcdef012345",
@@ -260,7 +260,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-06T06:45:00Z",
+        "timestamp": "Feb 05, 10:45 PM PST",
         "entries": [
             {
                 "id": "89abcdef-0123-4456-789a-cdef01234567",
@@ -277,7 +277,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-06T16:33:00Z",
+        "timestamp": "Feb 06, 08:33 AM PST",
         "entries": [
             {
                 "id": "abcdef01-2345-4678-9abc-ef0123456789",
@@ -294,7 +294,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-08T02:16:50.345206Z",
+        "timestamp": "Feb 07, 06:16 PM PST",
         "entries": [
             {
                 "id": "test-uuid-123",
@@ -305,7 +305,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-08T04:43:40.678Z",
+        "timestamp": "Feb 07, 08:43 PM PST",
         "entries": [
             {
                 "id": "9267b416-94e6-4bab-8452-ebe1ad87d0bd",
@@ -340,7 +340,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-08T04:48:58.766Z",
+        "timestamp": "Feb 07, 08:48 PM PST",
         "entries": [
             {
                 "id": "f686fdcb-d312-4d80-8032-9ae634469460",
@@ -351,7 +351,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-08T18:00:00-08:00",
+        "timestamp": "Feb 08, 10:00 AM PST",
         "entries": [
             {
                 "id": "350180ce-04b1-46de-a1a8-3ed13f4966c6",
@@ -362,7 +362,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-09T07:49:55.594Z",
+        "timestamp": "Feb 08, 11:49 PM PST",
         "entries": [
             {
                 "id": "1fb4c6b1-bef7-4183-a013d849d125",
@@ -373,7 +373,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-09T16:34:02.681Z",
+        "timestamp": "Feb 09, 08:34 AM PST",
         "entries": [
             {
                 "id": "be48a143-fd04-47a9-b373d5d1f79c",
@@ -414,7 +414,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-09T18:00:00-08:00",
+        "timestamp": "Feb 09, 10:00 AM PST",
         "entries": [
             {
                 "id": "e21c0cea-ed1b-4294-b8a1-a67932bcf07c",
@@ -425,7 +425,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-10T15:49:53.994Z",
+        "timestamp": "Feb 10, 07:49 AM PST",
         "entries": [
             {
                 "id": "3a6646c1-a781-4cd7-836c8c7a65ac",
@@ -466,7 +466,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-10T18:00:00-08:00",
+        "timestamp": "Feb 10, 10:00 AM PST",
         "entries": [
             {
                 "id": "12b044cb-02e2-4bde-8572-f5955438ec89",
@@ -477,7 +477,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-11T07:58:00.142Z",
+        "timestamp": "Feb 10, 11:58 PM PST",
         "entries": [
             {
                 "id": "445f0212-4510-4db5-8135a1a68ee0",
@@ -518,7 +518,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-11T16:51:05.649Z",
+        "timestamp": "Feb 11, 08:51 AM PST",
         "entries": [
             {
                 "id": "f54ff9f2-fe4a-44d2-805c6a9cf7a0",
@@ -559,7 +559,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-11T16:51:11.379Z",
+        "timestamp": "Feb 11, 08:51 AM PST",
         "entries": [
             {
                 "id": "ebfc43e9-c24f-4a53-b76378a69fb4",
@@ -600,7 +600,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-11T18:00:00-08:00",
+        "timestamp": "Feb 11, 10:00 AM PST",
         "entries": [
             {
                 "id": "8654d302-5069-4822-8bf5-cf7b8b96e41b",
@@ -611,7 +611,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-11T20:43:58.911Z",
+        "timestamp": "Feb 11, 12:43 PM PST",
         "entries": [
             {
                 "id": "ff8f4594-a6a2-4d00-aaa76afec7fc",
@@ -658,7 +658,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-12T08:58:26.946Z",
+        "timestamp": "Feb 12, 12:58 AM PST",
         "entries": [
             {
                 "id": "3c67763c-ae76-4691-a53f5549cc45",
@@ -705,7 +705,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-12T17:41:42.280Z",
+        "timestamp": "Feb 12, 09:41 AM PST",
         "entries": [
             {
                 "id": "8463bafe-37a5-4f8a-9631bb4b13ed",
@@ -752,7 +752,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-12T18:00:00-08:00",
+        "timestamp": "Feb 12, 10:00 AM PST",
         "entries": [
             {
                 "id": "fbf166d0-dee2-4ae4-ae8f-701fea11411c",
@@ -763,7 +763,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-13T01:22:24.154Z",
+        "timestamp": "Feb 12, 05:22 PM PST",
         "entries": [
             {
                 "id": "fb1a35de-a5c3-4bea-84e7aa32fef5",
@@ -810,7 +810,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-13T19:37:00.604Z",
+        "timestamp": "Feb 13, 11:37 AM PST",
         "entries": [
             {
                 "id": "75b6321a-db1c-41b8-bb0e3ea845f3",
@@ -857,7 +857,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-14T15:27:56.524Z",
+        "timestamp": "Feb 14, 07:27 AM PST",
         "entries": [
             {
                 "id": "3dfe7f5a-770c-476f-a413c62b1537",
@@ -904,7 +904,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-14T21:18:19.264Z",
+        "timestamp": "Feb 14, 01:18 PM PST",
         "entries": [
             {
                 "id": "83ed2ded-3184-4b38-a05136fbadc2",
@@ -951,7 +951,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-15T03:53:09.763Z",
+        "timestamp": "Feb 14, 07:53 PM PST",
         "entries": [
             {
                 "id": "b04a691e-5b2e-48eb-a89acd246ab3",
@@ -998,7 +998,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-15T17:59:42.875Z",
+        "timestamp": "Feb 15, 09:59 AM PST",
         "entries": [
             {
                 "id": "31817e93-609f-4137-a84cad8ee635",
@@ -1051,7 +1051,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-15T21:40:07.816Z",
+        "timestamp": "Feb 15, 01:40 PM PST",
         "entries": [
             {
                 "id": "5af7c0b7-a307-4967-91b33b90a991",
@@ -1098,7 +1098,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-16T00:24:50.043Z",
+        "timestamp": "Feb 15, 04:24 PM PST",
         "entries": [
             {
                 "id": "ba019171-2418-4d7f-9cd5ecfae8ef",
@@ -1151,7 +1151,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-16T00:24:59.542Z",
+        "timestamp": "Feb 15, 04:24 PM PST",
         "entries": [
             {
                 "id": "d4824a12-7ec8-498d-86f3-f67b0362f9b5",
@@ -1162,7 +1162,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-16T03:06:17.466Z",
+        "timestamp": "Feb 15, 07:06 PM PST",
         "entries": [
             {
                 "id": "5f5f0845-6a23-4f7a-8951-28106902973f",
@@ -1173,7 +1173,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-16T05:20:11.237Z",
+        "timestamp": "Feb 15, 09:20 PM PST",
         "entries": [
             {
                 "id": "11456d0d-0931-4b34-b2c4dd31ce8b",
@@ -1220,7 +1220,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-16T16:56:05.769Z",
+        "timestamp": "Feb 16, 08:56 AM PST",
         "entries": [
             {
                 "id": "08445b1f-4280-4d66-a0dcef9cd133",
@@ -1260,6 +1260,53 @@
             },
             {
                 "id": "0ebf0a7a-1594-455c-bb22dd4605a6",
+                "key": "discomfort",
+                "value": 4,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-17T01:17:26.777Z",
+        "entries": [
+            {
+                "id": "f67953e2-b6f7-4429-9406b5e9d2bf",
+                "key": "ketones",
+                "value": 6.8,
+                "simulated": false
+            },
+            {
+                "id": "41367654-0691-4197-ba12e61a8c6f",
+                "key": "glucose",
+                "value": 83,
+                "simulated": false
+            },
+            {
+                "id": "84ea5298-a861-4f4a-90fa633c9898",
+                "key": "body_weight",
+                "value": 212.8,
+                "simulated": false
+            },
+            {
+                "id": "608a77e1-9f8d-41bc-99164f30a466",
+                "key": "total_fat",
+                "value": 26.5,
+                "simulated": false
+            },
+            {
+                "id": "9aa7161b-362c-467f-9cfde509150f",
+                "key": "visceral_fat",
+                "value": 5,
+                "simulated": false
+            },
+            {
+                "id": "4612857a-8951-42ea-ad39c7275931",
+                "key": "water_percent",
+                "value": 48.3,
+                "simulated": false
+            },
+            {
+                "id": "16da1b69-c5ca-49d6-b0dc8eb8e673",
                 "key": "discomfort",
                 "value": 4,
                 "simulated": false
