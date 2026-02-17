@@ -1314,12 +1314,59 @@
         ]
     },
     {
-        "timestamp": "2026-02-17T01:20:22.152Z",
+        "timestamp": "Feb 16, 05:20 PM PST",
         "entries": [
             {
                 "id": "e03e7048-abfb-4003-80f9-a3a1a6f37c5d",
                 "key": "keto_snack",
                 "value": "Kimchi\nCr\u00e8me fraiche\n",
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-17T08:03:02.153Z",
+        "entries": [
+            {
+                "id": "0ce9ccb0-70e2-40af-9568c56d1cdf",
+                "key": "ketones",
+                "value": 6.6,
+                "simulated": false
+            },
+            {
+                "id": "b8faabcc-2d22-4147-8410d3422656",
+                "key": "glucose",
+                "value": 84,
+                "simulated": false
+            },
+            {
+                "id": "aa203156-ffc6-4800-bda8cac95308",
+                "key": "body_weight",
+                "value": 213.9,
+                "simulated": false
+            },
+            {
+                "id": "eec0aec1-85a4-4ec1-aa1844e48f68",
+                "key": "total_fat",
+                "value": 27.4,
+                "simulated": false
+            },
+            {
+                "id": "6790b1f0-7951-45ce-ae9a5a918cd5",
+                "key": "visceral_fat",
+                "value": 5.2,
+                "simulated": false
+            },
+            {
+                "id": "bec2ad25-b8aa-4834-adb7cd73dcf1",
+                "key": "water_percent",
+                "value": 48.3,
+                "simulated": false
+            },
+            {
+                "id": "750c21d5-0537-490b-b2deeebb4cc6",
+                "key": "discomfort",
+                "value": 0,
                 "simulated": false
             }
         ]
