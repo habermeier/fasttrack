@@ -334,7 +334,7 @@ async def get_telemetry(
         with open(DATA_FILE, "r") as f:
             data = json.load(f)
         return JSONResponse(
-            content=localize_telemetry(data),
+            content=data,
             headers={
                 "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
                 "Pragma": "no-cache",
@@ -552,7 +552,7 @@ async def get_data_api():
     with open(DATA_FILE, "r") as f:
         data = json.load(f)
     return JSONResponse(
-        content=localize_telemetry(data),
+        content=data,
         headers={
             "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
             "Pragma": "no-cache",
