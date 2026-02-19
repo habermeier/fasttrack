@@ -2,101 +2,275 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>FastTrack | Analytics Graph</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FastTrack | Interactive Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: #16161a;
+            --text: #ffffff;
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #ff007a;
+            --glucose: #d62728;
+            --ketones: #1f77b4;
+            --weight: #2ca02c;
+            --fat: #ff8c00;
+            --water: #17becf;
+            --gki: #9467bd;
         }
 
         body {
-            background: #0a0a0c;
-            overflow: auto;
-            /* Hide scrollbars but allow scrolling */
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
         }
 
-        body::-webkit-scrollbar {
-            display: none;  /* Chrome, Safari, Opera */
+        header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .logo {
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.2rem;
         }
 
         .container {
             width: 100%;
-            height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            /* Hide scrollbars */
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            flex-direction: column;
+            gap: 20px;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
-        .container::-webkit-scrollbar {
-            display: none;
+        .chart-wrapper {
+            width: 100%;
+            height: 45vh;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 15px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        #graph {
-            height: 100vh;
-            width: auto;
-            display: block;
-            /* Allow native pinch-to-zoom */
-            touch-action: pan-x pan-y pinch-zoom;
-        }
-
-        .back-btn {
+        .loading-overlay {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(67, 233, 123, 0.9);
-            color: #0a0a0c;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 1000;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg);
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
         }
 
-        .back-btn:active {
-            transform: scale(0.95);
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            color: var(--accent);
+            padding: 20px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <button class="back-btn" onclick="window.location.href='/'">←</button>
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; font-weight: 300;">Modeling Metabolic Data...</p>
+    </div>
+
+    <header>
+        <a href="/" class="back-btn">← Dash</a>
+        <div class="logo">FastTrack Analytics</div>
+        <div id="gen-time" style="font-size: 0.7rem; opacity: 0.5;"></div>
+    </header>
 
     <div class="container">
-        <img id="graph" src="/api/graph.svg" alt="Analytics Graph">
+        <div id="blood-chart" class="chart-wrapper"></div>
+        <div id="body-chart" class="chart-wrapper"></div>
     </div>
 
     <script>
-        function refreshGraph(force) {
-            const img = document.getElementById('graph');
-            const nonce = Date.now();
-            const forceParam = force ? '&force=1' : '';
-            img.src = `/api/graph.svg?v=${nonce}${forceParam}`;
+        async function init() {
+            try {
+                const res = await fetch('/api/graph-data');
+                const data = await res.json();
+                
+                document.getElementById('gen-time').textContent = data.generated_at;
+                renderCharts(data);
+                
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading').innerHTML = `<div class="error-msg">Failed to load data. Please refresh.</div>`;
+            }
         }
 
-        // Always request a fresh image URL on page load.
-        refreshGraph(false);
+        function renderCharts(data) {
+            const bloodChart = echarts.init(document.getElementById('blood-chart'), 'dark');
+            const bodyChart = echarts.init(document.getElementById('body-chart'), 'dark');
 
-        // If user returns to tab, refresh graph.
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                refreshGraph(false);
-            }
-        });
+            // Shared Config
+            const commonOption = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } }
+                },
+                grid: { left: '3%', right: '4%', bottom: '15%', top: '15%', containLabel: true },
+                dataZoom: [
+                    { type: 'inside', xAxisIndex: [0], start: 0, end: 100 },
+                    { type: 'slider', xAxisIndex: [0], bottom: 10, height: 20 }
+                ],
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: data.timestamps.map(ts => {
+                        const d = new Date(ts);
+                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + 
+                               d.toLocaleTimeString('en-US', { hour: '2-digit', hour12: false });
+                    }),
+                    axisLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 10 }
+                }
+            };
+
+            // BLOOD CHART (Glucose, Ketones, GKI)
+            const bloodOption = JSON.parse(JSON.stringify(commonOption));
+            bloodOption.title = { text: 'BLOOD BIOMETRICS', textStyle: { fontSize: 14, color: '#aaa' }, left: 'center' };
+            bloodOption.yAxis = [
+                { type: 'value', name: 'mg/dL', position: 'left', min: 40, max: 160, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
+                { type: 'value', name: 'mmol/L', position: 'right', min: 0, max: 10, splitLine: { show: false } }
+            ];
+            bloodOption.series = [
+                // Expected Band
+                {
+                    name: 'Glucose Band',
+                    type: 'line',
+                    data: data.bands.high,
+                    lineStyle: { opacity: 0 },
+                    stack: 'band',
+                    areaStyle: { color: 'rgba(255, 127, 80, 0.1)', origin: 'start' },
+                    silent: true, symbol: 'none'
+                },
+                {
+                    name: 'Glucose Band Low',
+                    type: 'line',
+                    data: data.bands.low,
+                    lineStyle: { opacity: 0 },
+                    stack: 'band',
+                    areaStyle: { color: 'transparent' },
+                    silent: true, symbol: 'none'
+                },
+                // Curves
+                {
+                    name: 'Glucose', type: 'line', data: data.curves.glucose, 
+                    smooth: true, symbol: 'none', lineStyle: { width: 4, color: '#d62728' }
+                },
+                {
+                    name: 'Ketones', type: 'line', yAxisIndex: 1, data: data.curves.ketones,
+                    smooth: true, symbol: 'none', lineStyle: { width: 4, color: '#1f77b4' }
+                },
+                {
+                    name: 'GKI', type: 'line', yAxisIndex: 1, data: data.curves.gki,
+                    smooth: true, symbol: 'none', lineStyle: { width: 2, type: 'dashed', color: '#9467bd' }
+                },
+                // Raw Points
+                {
+                    name: 'Measured Glucose', type: 'scatter',
+                    data: data.measured.map(m => [data.timestamps.indexOf(m.timestamp), m.glucose]).filter(p => p[1]),
+                    itemStyle: { color: '#d62728', borderColor: '#fff', borderWidth: 1 }
+                },
+                {
+                    name: 'Measured Ketones', type: 'scatter', yAxisIndex: 1,
+                    data: data.measured.map(m => [data.timestamps.indexOf(m.timestamp), m.ketones]).filter(p => p[1]),
+                    itemStyle: { color: '#1f77b4', borderColor: '#fff', borderWidth: 1 }
+                }
+            ];
+
+            // BODY CHART (Weight, Fat, Water)
+            const bodyOption = JSON.parse(JSON.stringify(commonOption));
+            bodyOption.title = { text: 'BODY COMPOSITION', textStyle: { fontSize: 14, color: '#aaa' }, left: 'center' };
+            bodyOption.yAxis = [
+                { type: 'value', name: 'lbs', position: 'left', min: 170, max: 240, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
+                { type: 'value', name: '%', position: 'right', min: 0, max: 80, splitLine: { show: false } }
+            ];
+            bodyOption.series = [
+                {
+                    name: 'Weight', type: 'line', data: data.curves.body_weight,
+                    smooth: true, symbol: 'none', lineStyle: { width: 5, color: '#2ca02c' }
+                },
+                {
+                    name: 'Total Fat', type: 'line', yAxisIndex: 1, data: data.curves.total_fat,
+                    smooth: true, symbol: 'none', lineStyle: { width: 3, color: '#ff8c00' }
+                },
+                {
+                    name: 'Water %', type: 'line', yAxisIndex: 1, data: data.curves.water_percent,
+                    smooth: true, symbol: 'none', lineStyle: { width: 3, color: '#17becf' }
+                },
+                // Anchors
+                {
+                    name: 'Weight Anchor', type: 'scatter',
+                    data: data.measured.map(m => [data.timestamps.indexOf(m.timestamp), m.body_weight]).filter(p => p[1]),
+                    itemStyle: { color: '#2ca02c', borderColor: '#fff', borderWidth: 2 }
+                }
+            ];
+
+            bloodChart.setOption(bloodOption);
+            bodyChart.setOption(bodyOption);
+
+            // Link Zooms
+            bloodChart.on('dataZoom', (params) => {
+                bodyChart.dispatchAction({ type: 'dataZoom', start: params.start, end: params.end });
+            });
+            bodyChart.on('dataZoom', (params) => {
+                bloodChart.dispatchAction({ type: 'dataZoom', start: params.start, end: params.end });
+            });
+
+            window.addEventListener('resize', () => {
+                bloodChart.resize();
+                bodyChart.resize();
+            });
+        }
+
+        init();
     </script>
 </body>
 </html>

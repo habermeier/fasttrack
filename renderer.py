@@ -9,6 +9,101 @@ from datetime import datetime, timedelta
 from scipy.interpolate import PchipInterpolator
 import os
 
+def get_graph_data(nested_data):
+    """
+    Perform all metabolic modeling and return data structured for interactive charting.
+    """
+    start_time = datetime(2026, 1, 28, 18, 0)
+    now_pst = datetime.utcnow() + timedelta(hours=-8)
+    
+    def flatten_data(nested):
+        rows = []
+        for block in nested:
+            ts_utc = pd.to_datetime(block["timestamp"])
+            if ts_utc.tzinfo is None: ts_utc = ts_utc.tz_localize('UTC')
+            ts_pst = ts_utc + pd.Timedelta(hours=-8)
+            ts = ts_pst.replace(tzinfo=None)
+            
+            row = {"timestamp": ts}
+            for entry in block["entries"]:
+                row[entry["key"]] = entry["value"]
+                if entry["key"] in ["glucose", "ketones", "body_weight"]:
+                    row[f"is_{entry['key']}_simulated"] = entry.get("simulated", False)
+            rows.append(row)
+        return pd.DataFrame(rows).sort_values('timestamp')
+
+    df = flatten_data(nested_data)
+    for col in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'cheat_snack', 'keto_snack']:
+        if col not in df.columns: df[col] = np.nan
+    for col in ['is_glucose_simulated', 'is_ketones_simulated', 'is_body_weight_simulated']:
+        if col not in df.columns: df[col] = False
+
+    df['hours_elapsed'] = df['timestamp'].apply(lambda x: (x - start_time).total_seconds() / 3600)
+    df['gki'] = df.apply(lambda r: (r['glucose'] / 18.016) / r['ketones'] if pd.notnull(r['glucose']) and pd.notnull(r['ketones']) else np.nan, axis=1)
+
+    # Simulation Range: Start to Now
+    end_time_pst = now_pst.replace(tzinfo=None)
+    max_hour = (end_time_pst - start_time).total_seconds() / 3600
+    sim_hours = np.linspace(df['hours_elapsed'].min(), max_hour, 1000)
+    sim_dates = [start_time + timedelta(hours=h) for h in sim_hours]
+    sim_timestamps = [d.isoformat() for d in sim_dates]
+
+    def get_pchip(sub_df, y_column, target_x):
+        sub = sub_df.dropna(subset=[y_column])
+        if len(sub) < 2: return np.full_like(target_x, np.nan)
+        return PchipInterpolator(sub['hours_elapsed'], sub[y_column])(target_x)
+
+    # Generate smooth curves
+    curves = {
+        "glucose": get_pchip(df, 'glucose', sim_hours).tolist(),
+        "ketones": get_pchip(df, 'ketones', sim_hours).tolist(),
+        "gki": get_pchip(df, 'gki', sim_hours).tolist(),
+        "body_weight": get_pchip(df, 'body_weight', sim_hours).tolist(),
+        "total_fat": get_pchip(df, 'total_fat', sim_hours).tolist(),
+        "visceral_fat": get_pchip(df, 'visceral_fat', sim_hours).tolist(),
+        "water_percent": get_pchip(df, 'water_percent', sim_hours).tolist()
+    }
+
+    # Circadian Banding
+    def get_circadian_band(dates):
+        lows, highs = [], []
+        for d in dates:
+            hour = d.hour + d.minute/60.0
+            surge = 15 * np.exp(-((hour - 7)**2) / (2 * 1.5**2))
+            lows.append(70 + surge * 0.5)
+            highs.append(100 + surge)
+        return lows, highs
+
+    band_low, band_high = get_circadian_band(sim_dates)
+
+    # Events (Refeeds/Bridges)
+    events = []
+    for _, row in df[df['cheat_snack'].notnull() | df['keto_snack'].notnull()].iterrows():
+        events.append({
+            "timestamp": row['timestamp'].isoformat(),
+            "type": "refeed" if pd.notnull(row['cheat_snack']) else "bridge",
+            "note": str(row['cheat_snack'] or row['keto_snack'])
+        })
+
+    # Raw Measured Points (with metadata)
+    measured = []
+    for _, row in df.iterrows():
+        m_point = {"timestamp": row['timestamp'].isoformat()}
+        for key in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'gki']:
+            if pd.notnull(row[key]):
+                m_point[key] = row[key]
+        if len(m_point) > 1:
+            measured.append(m_point)
+
+    return {
+        "timestamps": sim_timestamps,
+        "curves": curves,
+        "measured": measured,
+        "events": events,
+        "bands": {"low": band_low, "high": band_high},
+        "generated_at": generated_at_pst
+    }
+
 def generate_chart(nested_data, output_path="chart.png"):
     # 1. TEMPORAL ANCHOR (Start in local Pacific time)
     # Start time is 2026-01-28 18:00 (already understood as PST)

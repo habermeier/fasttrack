@@ -527,6 +527,21 @@ async def get_svg_graph(force: bool = Query(False)):
         }
     )
 
+@app.get("/api/graph-data")
+async def get_graph_data():
+    if not os.path.exists(DATA_FILE):
+        return {}
+    with open(DATA_FILE, "r") as f:
+        data = json.load(f)
+    return JSONResponse(
+        content=renderer.get_graph_data(data),
+        headers={
+            "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate, private",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+    )
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/api/data")
