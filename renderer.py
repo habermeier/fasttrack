@@ -13,12 +13,163 @@ def get_graph_data(nested_data):
     """
     Perform all metabolic modeling and return data structured for interactive charting.
     """
+    try:
+        start_time = datetime(2026, 1, 28, 18, 0)
+        # Get current time in PST (UTC-8)
+        pst_offset = timedelta(hours=-8)
+        now_pst = datetime.utcnow() + pst_offset
+        generated_at_pst = now_pst.strftime("%b %d, %Y • %I:%M %p PST")
+        
+        def flatten_data(nested):
+            rows = []
+            for block in nested:
+                raw_ts = block.get("timestamp")
+                if not raw_ts: continue
+                
+                if isinstance(raw_ts, str) and (" PST" in raw_ts or " •" in raw_ts):
+                    raw_ts = raw_ts.replace(" •", "").split(" PST")[0]
+                
+                try:
+                    ts_utc = pd.to_datetime(raw_ts)
+                    if ts_utc.tzinfo is None:
+                        if isinstance(block["timestamp"], str) and " PST" in block["timestamp"]:
+                            ts_utc = ts_utc + pd.Timedelta(hours=8)
+                        ts_utc = ts_utc.tz_localize('UTC')
+                    
+                    ts_pst = ts_utc + pd.Timedelta(hours=-8)
+                    ts = ts_pst.replace(tzinfo=None)
+                    
+                    row = {"timestamp": ts}
+                    for entry in block.get("entries", []):
+                        row[entry["key"]] = entry["value"]
+                        if entry["key"] in ["glucose", "ketones", "body_weight"]:
+                            row[f"is_{entry['key']}_simulated"] = entry.get("simulated", False)
+                    rows.append(row)
+                except Exception as e:
+                    print(f"[{datetime.now()}] ERROR: Failed to parse block {raw_ts}: {e}")
+            
+            if not rows: return pd.DataFrame()
+            
+            # Merge duplicates by timestamp
+            df = pd.DataFrame(rows).sort_values('timestamp')
+            df = df.groupby('timestamp').first().reset_index()
+            return df
+
+        df = flatten_data(nested_data)
+        if df.empty:
+            return {"timestamps": [], "curves": {}, "measured": [], "events": [], "bands": {"low": [], "high": []}, "generated_at": generated_at_pst}
+
+        for col in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'cheat_snack', 'keto_snack']:
+            if col not in df.columns: df[col] = np.nan
+        for col in ['is_glucose_simulated', 'is_ketones_simulated', 'is_body_weight_simulated']:
+            if col not in df.columns: df[col] = False
+
+        df['hours_elapsed'] = df['timestamp'].apply(lambda x: (x.replace(tzinfo=None) - start_time).total_seconds() / 3600)
+        df['gki'] = df.apply(lambda r: (r['glucose'] / 18.016) / r['ketones'] if pd.notnull(r['glucose']) and pd.notnull(r['ketones']) else np.nan, axis=1)
+
+        # Simulation Range: Start to Now
+        now_pst_naive = now_pst.replace(tzinfo=None)
+        max_hour = (now_pst_naive - start_time).total_seconds() / 3600
+        min_hour = float(df['hours_elapsed'].min())
+        
+        # Ensure range is valid and increasing
+        if max_hour <= min_hour:
+            max_hour = min_hour + 1.0
+            
+        sim_hours = np.linspace(min_hour, max_hour, 1000)
+        sim_dates = []
+        for h in sim_hours:
+            try:
+                sim_dates.append(start_time + timedelta(hours=float(h)))
+            except Exception:
+                sim_dates.append(start_time)
+                
+        sim_timestamps = [d.isoformat() for d in sim_dates]
+
+        def get_pchip(sub_df, y_column, target_x):
+            try:
+                sub = sub_df.dropna(subset=[y_column]).sort_values('hours_elapsed')
+                if len(sub) < 2: return np.full_like(target_x, np.nan)
+                # Ensure strictly increasing x
+                sub = sub.drop_duplicates(subset=['hours_elapsed'])
+                if len(sub) < 2: return np.full_like(target_x, np.nan)
+                return PchipInterpolator(sub['hours_elapsed'], sub[y_column])(target_x)
+            except Exception as e:
+                print(f"[{datetime.now()}] ERROR: Pchip failed for {y_column}: {e}")
+                return np.full_like(target_x, np.nan)
+
+        # Generate smooth curves
+        curves = {
+            "glucose": get_pchip(df, 'glucose', sim_hours).tolist(),
+            "ketones": get_pchip(df, 'ketones', sim_hours).tolist(),
+            "gki": get_pchip(df, 'gki', sim_hours).tolist(),
+            "body_weight": get_pchip(df, 'body_weight', sim_hours).tolist(),
+            "total_fat": get_pchip(df, 'total_fat', sim_hours).tolist(),
+            "visceral_fat": get_pchip(df, 'visceral_fat', sim_hours).tolist(),
+            "water_percent": get_pchip(df, 'water_percent', sim_hours).tolist()
+        }
+
+        # Circadian Banding
+        def get_circadian_band(dates):
+            lows, highs = [], []
+            for d in dates:
+                hour = d.hour + d.minute/60.0
+                surge = 15 * np.exp(-((hour - 7)**2) / (2 * 1.5**2))
+                lows.append(70 + surge * 0.5)
+                highs.append(100 + surge)
+            return lows, highs
+
+        band_low, band_high = get_circadian_band(sim_dates)
+
+        # Events
+        events = []
+        for _, row in df[df['cheat_snack'].notnull() | df['keto_snack'].notnull()].iterrows():
+            events.append({
+                "timestamp": row['timestamp'].isoformat(),
+                "type": "refeed" if pd.notnull(row['cheat_snack']) else "bridge",
+                "note": str(row['cheat_snack'] or row['keto_snack'])
+            })
+
+        # Measured Points
+        measured = []
+        for _, row in df.iterrows():
+            m_point = {"timestamp": row['timestamp'].isoformat()}
+            has_data = False
+            for key in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'gki']:
+                if key in row and pd.notnull(row[key]):
+                    m_point[key] = row[key]
+                    has_data = True
+            if has_data:
+                measured.append(m_point)
+
+        return {
+            "timestamps": sim_timestamps,
+            "curves": curves,
+            "measured": measured,
+            "events": events,
+            "bands": {"low": band_low, "high": band_high},
+            "generated_at": generated_at_pst
+        }
+    except Exception as e:
+        print(f"[{datetime.now()}] CRITICAL: get_graph_data failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return {}
+
+def generate_chart(nested_data, output_path="chart.png"):
+    # 1. TEMPORAL ANCHOR (Start in local Pacific time)
+    # Start time is 2026-01-28 18:00 (already understood as PST)
     start_time = datetime(2026, 1, 28, 18, 0)
-    now_pst = datetime.utcnow() + timedelta(hours=-8)
-    
+    # Get current time in PST (UTC-8)
+    pst_offset = timedelta(hours=-8)
+    now_pst = datetime.utcnow() + pst_offset
+    generated_at_pst = now_pst.strftime("%b %d, %Y • %I:%M %p PST")
+
+    # --- REFRESHED ENGINE LOGIC ---
     def flatten_data(nested):
         rows = []
         for block in nested:
+            # Strip human-friendly suffixes (like ' PST') if they were added
             raw_ts = block["timestamp"]
             if isinstance(raw_ts, str) and (" PST" in raw_ts or " •" in raw_ts):
                 raw_ts = raw_ts.replace(" •", "").split(" PST")[0]
@@ -44,123 +195,6 @@ def get_graph_data(nested_data):
         # We group by 'timestamp' and take the first non-null value for each column
         df = df.groupby('timestamp').first().reset_index()
         return df
-
-    df = flatten_data(nested_data)
-    if df.empty:
-        return {"timestamps": [], "curves": {}, "measured": [], "events": [], "bands": {"low": [], "high": []}, "generated_at": generated_at_pst}
-
-    # Ensure timestamp column is datetime
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df = df.dropna(subset=['timestamp'])
-    
-    for col in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'cheat_snack', 'keto_snack']:
-        if col not in df.columns: df[col] = np.nan
-    for col in ['is_glucose_simulated', 'is_ketones_simulated', 'is_body_weight_simulated']:
-        if col not in df.columns: df[col] = False
-
-    df['hours_elapsed'] = df['timestamp'].apply(lambda x: (x.replace(tzinfo=None) - start_time).total_seconds() / 3600)
-    df['gki'] = df.apply(lambda r: (r['glucose'] / 18.016) / r['ketones'] if pd.notnull(r['glucose']) and pd.notnull(r['ketones']) else np.nan, axis=1)
-
-    # Simulation Range: Start to Now
-    end_time_pst = now_pst.replace(tzinfo=None)
-    max_hour = (end_time_pst - start_time).total_seconds() / 3600
-    
-    min_h = float(df['hours_elapsed'].min())
-    if np.isnan(min_h): min_h = 0
-    
-    sim_hours = np.linspace(min_h, max_hour, 1000)
-    sim_dates = []
-    for h in sim_hours:
-        try:
-            sim_dates.append(start_time + timedelta(hours=float(h)))
-        except (OverflowError, ValueError):
-            sim_dates.append(start_time) # Fallback
-            
-    sim_timestamps = [d.isoformat() for d in sim_dates]
-
-    def get_pchip(sub_df, y_column, target_x):
-        sub = sub_df.dropna(subset=[y_column])
-        if len(sub) < 2: return np.full_like(target_x, np.nan)
-        return PchipInterpolator(sub['hours_elapsed'], sub[y_column])(target_x)
-
-    # Generate smooth curves
-    curves = {
-        "glucose": get_pchip(df, 'glucose', sim_hours).tolist(),
-        "ketones": get_pchip(df, 'ketones', sim_hours).tolist(),
-        "gki": get_pchip(df, 'gki', sim_hours).tolist(),
-        "body_weight": get_pchip(df, 'body_weight', sim_hours).tolist(),
-        "total_fat": get_pchip(df, 'total_fat', sim_hours).tolist(),
-        "visceral_fat": get_pchip(df, 'visceral_fat', sim_hours).tolist(),
-        "water_percent": get_pchip(df, 'water_percent', sim_hours).tolist()
-    }
-
-    # Circadian Banding
-    def get_circadian_band(dates):
-        lows, highs = [], []
-        for d in dates:
-            hour = d.hour + d.minute/60.0
-            surge = 15 * np.exp(-((hour - 7)**2) / (2 * 1.5**2))
-            lows.append(70 + surge * 0.5)
-            highs.append(100 + surge)
-        return lows, highs
-
-    band_low, band_high = get_circadian_band(sim_dates)
-
-    # Events (Refeeds/Bridges)
-    events = []
-    for _, row in df[df['cheat_snack'].notnull() | df['keto_snack'].notnull()].iterrows():
-        events.append({
-            "timestamp": row['timestamp'].isoformat(),
-            "type": "refeed" if pd.notnull(row['cheat_snack']) else "bridge",
-            "note": str(row['cheat_snack'] or row['keto_snack'])
-        })
-
-    # Raw Measured Points (with metadata)
-    measured = []
-    for _, row in df.iterrows():
-        m_point = {"timestamp": row['timestamp'].isoformat()}
-        for key in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'gki']:
-            if pd.notnull(row[key]):
-                m_point[key] = row[key]
-        if len(m_point) > 1:
-            measured.append(m_point)
-
-    return {
-        "timestamps": sim_timestamps,
-        "curves": curves,
-        "measured": measured,
-        "events": events,
-        "bands": {"low": band_low, "high": band_high},
-        "generated_at": generated_at_pst
-    }
-
-def generate_chart(nested_data, output_path="chart.png"):
-    # 1. TEMPORAL ANCHOR (Start in local Pacific time)
-    # Start time is 2026-01-28 18:00 (already understood as PST)
-    start_time = datetime(2026, 1, 28, 18, 0)
-    # Get current time in PST (UTC-8)
-    pst_offset = timedelta(hours=-8)
-    now_pst = datetime.utcnow() + pst_offset
-    generated_at_pst = now_pst.strftime("%b %d, %Y • %I:%M %p PST")
-
-    # --- REFRESHED ENGINE LOGIC ---
-    def flatten_data(nested):
-        rows = []
-        for block in nested:
-            # Parse UTC timestamp from JSON
-            ts_utc = pd.to_datetime(block["timestamp"])
-            # Convert to PST (UTC-8)
-            ts_pst = ts_utc + pd.Timedelta(hours=-8)
-            # Use timezone-naive PST for plotting consistency
-            ts = ts_pst.replace(tzinfo=None)
-            
-            row = {"timestamp": ts}
-            for entry in block["entries"]:
-                row[entry["key"]] = entry["value"]
-                if entry["key"] in ["glucose", "ketones", "body_weight"]:
-                    row[f"is_{entry['key']}_simulated"] = entry.get("simulated", False)
-            rows.append(row)
-        return pd.DataFrame(rows).sort_values('timestamp')
 
     df = flatten_data(nested_data)
     # Ensure mandatory/expected columns exist
