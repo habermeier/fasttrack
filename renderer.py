@@ -56,6 +56,7 @@ def get_graph_data(nested_data):
 
     # Simulation Range: Start to Now
     end_time_pst = now_pst.replace(tzinfo=None)
+    generated_at_pst = end_time_pst.strftime("%b %d, %Y • %I:%M %p PST")
     max_hour = (end_time_pst - start_time).total_seconds() / 3600
     sim_hours = np.linspace(df['hours_elapsed'].min(), max_hour, 1000)
     sim_dates = [start_time + timedelta(hours=h) for h in sim_hours]
