@@ -19,7 +19,12 @@ def get_graph_data(nested_data):
     def flatten_data(nested):
         rows = []
         for block in nested:
-            ts_utc = pd.to_datetime(block["timestamp"])
+            # Strip human-friendly suffixes (like ' PST') if they were added
+            raw_ts = block["timestamp"]
+            if isinstance(raw_ts, str) and ' ' in raw_ts:
+                raw_ts = raw_ts.split(' ')[0]
+            
+            ts_utc = pd.to_datetime(raw_ts)
             if ts_utc.tzinfo is None: ts_utc = ts_utc.tz_localize('UTC')
             ts_pst = ts_utc + pd.Timedelta(hours=-8)
             ts = ts_pst.replace(tzinfo=None)
