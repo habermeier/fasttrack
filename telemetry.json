@@ -1419,7 +1419,7 @@
         ]
     },
     {
-        "timestamp": "2026-02-19T01:56:35.241Z",
+        "timestamp": "Feb 18, 05:56 PM PST",
         "entries": [
             {
                 "id": "8ced8524-8923-4679-b873f9f1e7c9",
@@ -1459,6 +1459,53 @@
             },
             {
                 "id": "46bff12c-b13b-421e-81ef06dc1462",
+                "key": "discomfort",
+                "value": 3,
+                "simulated": false
+            }
+        ]
+    },
+    {
+        "timestamp": "2026-02-19T20:02:19.085Z",
+        "entries": [
+            {
+                "id": "4df7b4b3-33fa-453b-b2d6ffbaf86f",
+                "key": "ketones",
+                "value": 6.5,
+                "simulated": false
+            },
+            {
+                "id": "8a69526a-ead6-413a-823332c3fb5a",
+                "key": "glucose",
+                "value": 111,
+                "simulated": false
+            },
+            {
+                "id": "b6343090-8050-445b-bfbbcacb0ce9",
+                "key": "body_weight",
+                "value": 212.7,
+                "simulated": false
+            },
+            {
+                "id": "f784d2db-4640-43de-87e969628692",
+                "key": "total_fat",
+                "value": 26.6,
+                "simulated": false
+            },
+            {
+                "id": "a051fc9e-40da-4193-9dd280f6e2d3",
+                "key": "visceral_fat",
+                "value": 5,
+                "simulated": false
+            },
+            {
+                "id": "f73ca8c5-3407-4b59-b04a280b2ebd",
+                "key": "water_percent",
+                "value": 49.2,
+                "simulated": false
+            },
+            {
+                "id": "a3f4277d-65de-4a7b-89497da0d7a6",
                 "key": "discomfort",
                 "value": 3,
                 "simulated": false
