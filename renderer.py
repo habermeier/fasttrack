@@ -21,18 +21,14 @@ def get_graph_data(nested_data):
         for block in nested:
             raw_ts = block["timestamp"]
             if isinstance(raw_ts, str) and (" PST" in raw_ts or " •" in raw_ts):
-                # Handle localized corruption: "Feb 15, 2026 • 10:32 AM PST"
                 raw_ts = raw_ts.replace(" •", "").split(" PST")[0]
             
             ts_utc = pd.to_datetime(raw_ts)
             if ts_utc.tzinfo is None:
                 if isinstance(block["timestamp"], str) and " PST" in block["timestamp"]:
-                    # It was PST, so add 8 hours to get UTC
                     ts_utc = ts_utc + pd.Timedelta(hours=8)
-                
                 ts_utc = ts_utc.tz_localize('UTC')
             
-            # Convert to PST (UTC-8)
             ts_pst = ts_utc + pd.Timedelta(hours=-8)
             ts = ts_pst.replace(tzinfo=None)
             
@@ -42,7 +38,12 @@ def get_graph_data(nested_data):
                 if entry["key"] in ["glucose", "ketones", "body_weight"]:
                     row[f"is_{entry['key']}_simulated"] = entry.get("simulated", False)
             rows.append(row)
-        return pd.DataFrame(rows).sort_values('timestamp')
+        
+        # Merge duplicates by timestamp (group by and take first/mean)
+        df = pd.DataFrame(rows).sort_values('timestamp')
+        # We group by 'timestamp' and take the first non-null value for each column
+        df = df.groupby('timestamp').first().reset_index()
+        return df
 
     df = flatten_data(nested_data)
     for col in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'cheat_snack', 'keto_snack']:
