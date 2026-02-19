@@ -46,20 +46,36 @@ def get_graph_data(nested_data):
         return df
 
     df = flatten_data(nested_data)
+    if df.empty:
+        return {"timestamps": [], "curves": {}, "measured": [], "events": [], "bands": {"low": [], "high": []}, "generated_at": generated_at_pst}
+
+    # Ensure timestamp column is datetime
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df = df.dropna(subset=['timestamp'])
+    
     for col in ['glucose', 'ketones', 'body_weight', 'total_fat', 'visceral_fat', 'water_percent', 'cheat_snack', 'keto_snack']:
         if col not in df.columns: df[col] = np.nan
     for col in ['is_glucose_simulated', 'is_ketones_simulated', 'is_body_weight_simulated']:
         if col not in df.columns: df[col] = False
 
-    df['hours_elapsed'] = df['timestamp'].apply(lambda x: (x - start_time).total_seconds() / 3600)
+    df['hours_elapsed'] = df['timestamp'].apply(lambda x: (x.replace(tzinfo=None) - start_time).total_seconds() / 3600)
     df['gki'] = df.apply(lambda r: (r['glucose'] / 18.016) / r['ketones'] if pd.notnull(r['glucose']) and pd.notnull(r['ketones']) else np.nan, axis=1)
 
     # Simulation Range: Start to Now
     end_time_pst = now_pst.replace(tzinfo=None)
-    generated_at_pst = end_time_pst.strftime("%b %d, %Y • %I:%M %p PST")
     max_hour = (end_time_pst - start_time).total_seconds() / 3600
-    sim_hours = np.linspace(df['hours_elapsed'].min(), max_hour, 1000)
-    sim_dates = [start_time + timedelta(hours=h) for h in sim_hours]
+    
+    min_h = float(df['hours_elapsed'].min())
+    if np.isnan(min_h): min_h = 0
+    
+    sim_hours = np.linspace(min_h, max_hour, 1000)
+    sim_dates = []
+    for h in sim_hours:
+        try:
+            sim_dates.append(start_time + timedelta(hours=float(h)))
+        except (OverflowError, ValueError):
+            sim_dates.append(start_time) # Fallback
+            
     sim_timestamps = [d.isoformat() for d in sim_dates]
 
     def get_pchip(sub_df, y_column, target_x):
