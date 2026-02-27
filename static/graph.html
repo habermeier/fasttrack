@@ -210,7 +210,18 @@
                 },
                 {
                     name: 'GKI', type: 'line', yAxisIndex: 1, data: data.curves.gki,
-                    smooth: true, symbol: 'none', lineStyle: { width: 2, type: 'dashed', color: '#9467bd' }
+                    smooth: true, symbol: 'none', lineStyle: { width: 2, type: 'dashed', color: '#9467bd' },
+                    markArea: {
+                        silent: true,
+                        itemStyle: { color: 'rgba(148, 103, 189, 0.1)' },
+                        data: [[{ yAxis: 0 }, { yAxis: 1.0 }]]
+                    },
+                    markLine: {
+                        silent: true,
+                        symbol: 'none',
+                        lineStyle: { color: '#9467bd', type: 'solid', width: 1, opacity: 0.5 },
+                        data: [{ yAxis: 1.0, label: { formatter: 'Mitophagy Goal (1.0)', position: 'end', fontSize: 10 } }]
+                    }
                 },
                 // Raw Points
                 {
@@ -229,13 +240,31 @@
             const bodyOption = JSON.parse(JSON.stringify(commonOption));
             bodyOption.title = { text: 'BODY COMPOSITION', textStyle: { fontSize: 14, color: '#aaa' }, left: 'center' };
             bodyOption.yAxis = [
-                { type: 'value', name: 'lbs', position: 'left', min: 170, max: 240, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
+                { type: 'value', name: 'lbs', position: 'left', min: 130, max: 240, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
                 { type: 'value', name: '%', position: 'right', min: 0, max: 80, splitLine: { show: false } }
             ];
             bodyOption.series = [
                 {
                     name: 'Weight', type: 'line', data: data.curves.body_weight,
-                    smooth: true, symbol: 'none', lineStyle: { width: 5, color: '#2ca02c' }
+                    smooth: true, symbol: 'none', lineStyle: { width: 5, color: '#2ca02c' },
+                    markArea: {
+                        silent: true,
+                        itemStyle: { opacity: 0.05 },
+                        data: [
+                            [
+                                { name: 'Normal', yAxis: 136.4, itemStyle: { color: '#2ca02c' } },
+                                { yAxis: 184.4 }
+                            ],
+                            [
+                                { name: 'Overweight', yAxis: 184.4, itemStyle: { color: '#ffcc00' } },
+                                { yAxis: 221.2 }
+                            ],
+                            [
+                                { name: 'Obese', yAxis: 221.2, itemStyle: { color: '#d62728' } },
+                                { yAxis: 300 }
+                            ]
+                        ]
+                    }
                 },
                 {
                     name: 'Total Fat', type: 'line', yAxisIndex: 1, data: data.curves.total_fat,

@@ -371,8 +371,16 @@ def generate_chart(nested_data, output_path="chart.png"):
 
     # Markers for ground truth weight
     ax3.scatter(weight_meas_df['timestamp'], weight_meas_df['body_weight'], marker='^', color='#2ca02c', s=600, edgecolors='black', label='Measured Anchor', zorder=6)
-    ax3.axhline(y=220, color='blue', ls='-.', lw=4, alpha=0.5, label='Obesity Exit: 220')
-    ax3.set_ylim(170, 240)
+    
+    # BMI Standard Categories for 6'0" Male
+    ax3.axhspan(136.4, 184.4, color='#2ca02c', alpha=0.04, label='Normal Range (18.5-25 BMI)')
+    ax3.axhspan(184.4, 221.2, color='#ffcc00', alpha=0.04, label='Overweight (25-30 BMI)')
+    ax3.axhspan(221.2, 300.0, color='#d62728', alpha=0.04, label='Obese (> 30 BMI)')
+    
+    ax3.axhline(y=184.4, color='#2ca02c', ls=':', lw=3, alpha=0.3)
+    ax3.axhline(y=221.2, color='#d62728', ls=':', lw=3, alpha=0.3)
+    
+    ax3.set_ylim(130, 240)
     ax3.yaxis.set_major_locator(MultipleLocator(10))
     ax3.tick_params(axis='y', colors='#2ca02c', labelsize=22, pad=3)
 
