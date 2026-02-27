@@ -213,14 +213,14 @@
                     smooth: true, symbol: 'none', lineStyle: { width: 2, type: 'dashed', color: '#9467bd' },
                     markArea: {
                         silent: true,
-                        itemStyle: { color: 'rgba(148, 103, 189, 0.1)' },
+                        itemStyle: { color: 'rgba(148, 103, 189, 0.2)' },
                         data: [[{ yAxis: 0 }, { yAxis: 1.0 }]]
                     },
                     markLine: {
                         silent: true,
                         symbol: 'none',
-                        lineStyle: { color: '#9467bd', type: 'solid', width: 1, opacity: 0.5 },
-                        data: [{ yAxis: 1.0, label: { formatter: 'Mitophagy Goal (1.0)', position: 'end', fontSize: 10 } }]
+                        lineStyle: { color: '#9467bd', type: 'dashed', width: 2, opacity: 0.8 },
+                        data: [{ yAxis: 1.0, label: { formatter: 'Mitophagy Goal (1.0)', position: 'end', fontSize: 12, color: '#fff', fontWeight: 'bold' } }]
                     }
                 },
                 // Raw Points
@@ -249,18 +249,18 @@
                     smooth: true, symbol: 'none', lineStyle: { width: 5, color: '#2ca02c' },
                     markArea: {
                         silent: true,
-                        itemStyle: { opacity: 0.05 },
+                        itemStyle: { opacity: 0.12 },
                         data: [
                             [
-                                { name: 'Normal', yAxis: 136.4, itemStyle: { color: '#2ca02c' } },
+                                { name: 'Normal', yAxis: 136.4, itemStyle: { color: '#2ca02c' }, label: { show: true, position: 'insideLeft', color: '#fff', opacity: 0.8 } },
                                 { yAxis: 184.4 }
                             ],
                             [
-                                { name: 'Overweight', yAxis: 184.4, itemStyle: { color: '#ffcc00' } },
+                                { name: 'Overweight', yAxis: 184.4, itemStyle: { color: '#ffcc00' }, label: { show: true, position: 'insideLeft', color: '#fff', opacity: 0.8 } },
                                 { yAxis: 221.2 }
                             ],
                             [
-                                { name: 'Obese', yAxis: 221.2, itemStyle: { color: '#d62728' } },
+                                { name: 'Obese', yAxis: 221.2, itemStyle: { color: '#d62728' }, label: { show: true, position: 'insideLeft', color: '#fff', opacity: 0.8 } },
                                 { yAxis: 300 }
                             ]
                         ]

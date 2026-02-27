@@ -357,8 +357,11 @@ def generate_chart(nested_data, output_path="chart.png"):
     ax2.scatter(ketones_meas_df['timestamp'], ketones_meas_df['ketones'], marker='s', color='#1f77b4', s=400, edgecolors='black', label='Measured Ketones', zorder=5)
     ax2.plot(sim_dates, smooth_gki_masked, color='#9467bd', lw=10, alpha=0.2, ls='--')
     ax2.scatter(gki_meas_df['timestamp'], gki_meas_df['gki'], marker='D', color='#9467bd', s=300, edgecolors='black', label='Computed GKI', zorder=5)
-    ax2.axhline(y=1.0, color='purple', ls='-', lw=5, alpha=0.7, label='Mitophagy Goal (1.0)')
-    ax2.fill_between(sim_dates, 0, 1.0, color='purple', alpha=0.1)
+    
+    # GKI Area and Line
+    ax2.axhline(y=1.0, color='#9467bd', ls='--', lw=6, alpha=0.8, label='Mitophagy Goal (1.0)', zorder=2)
+    ax2.fill_between(sim_dates, 0, 1.0, color='#9467bd', alpha=0.2, zorder=1)
+    
     ax2.set_ylim(0, 10)
     ax2.yaxis.set_major_locator(MultipleLocator(2))
     ax2.tick_params(axis='y', colors='#1f77b4', labelsize=22, pad=4)
@@ -372,13 +375,18 @@ def generate_chart(nested_data, output_path="chart.png"):
     # Markers for ground truth weight
     ax3.scatter(weight_meas_df['timestamp'], weight_meas_df['body_weight'], marker='^', color='#2ca02c', s=600, edgecolors='black', label='Measured Anchor', zorder=6)
     
-    # BMI Standard Categories for 6'0" Male
-    ax3.axhspan(136.4, 184.4, color='#2ca02c', alpha=0.04, label='Normal Range (18.5-25 BMI)')
-    ax3.axhspan(184.4, 221.2, color='#ffcc00', alpha=0.04, label='Overweight (25-30 BMI)')
-    ax3.axhspan(221.2, 300.0, color='#d62728', alpha=0.04, label='Obese (> 30 BMI)')
+    # BMI Standard Categories for 6'0" Male - Increased visibility
+    ax3.axhspan(136.4, 184.4, color='#2ca02c', alpha=0.08, zorder=1)
+    ax3.axhspan(184.4, 221.2, color='#ffcc00', alpha=0.08, zorder=1)
+    ax3.axhspan(221.2, 300.0, color='#d62728', alpha=0.08, zorder=1)
     
-    ax3.axhline(y=184.4, color='#2ca02c', ls=':', lw=3, alpha=0.3)
-    ax3.axhline(y=221.2, color='#d62728', ls=':', lw=3, alpha=0.3)
+    ax3.axhline(y=184.4, color='#2ca02c', ls='--', lw=4, alpha=0.5, zorder=2)
+    ax3.axhline(y=221.2, color='#d62728', ls='--', lw=4, alpha=0.5, zorder=2)
+    
+    # Labels for weight zones
+    ax3.text(sim_dates[0], 160.4, ' NORMAL', color='#2ca02c', fontweight='bold', fontsize=20, va='center', alpha=0.8)
+    ax3.text(sim_dates[0], 202.8, ' OVERWEIGHT', color='#ffcc00', fontweight='bold', fontsize=20, va='center', alpha=0.8)
+    ax3.text(sim_dates[0], 230.6, ' OBESE', color='#d62728', fontweight='bold', fontsize=20, va='center', alpha=0.8)
     
     ax3.set_ylim(130, 240)
     ax3.yaxis.set_major_locator(MultipleLocator(10))
