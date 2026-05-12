@@ -1846,5 +1846,58 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-05-12T18:08:02.662Z",
+        "entries": [
+            {
+                "id": "8d947d0e-91fc-4f5e-b54c0d84f6fa",
+                "key": "ketones",
+                "value": 0.5,
+                "simulated": false
+            },
+            {
+                "id": "e65f9e3b-bd68-49ab-8d0594454a72",
+                "key": "glucose",
+                "value": 135,
+                "simulated": false
+            },
+            {
+                "id": "21b40e16-496b-4df4-9f754d355cbc",
+                "key": "body_weight",
+                "value": 228.3,
+                "simulated": false
+            },
+            {
+                "id": "c18e4a4b-3d6d-48c2-941e8e07b803",
+                "key": "total_fat",
+                "value": 28.6,
+                "simulated": false
+            },
+            {
+                "id": "e3dc3715-e3dd-4516-8daa2af99e8b",
+                "key": "visceral_fat",
+                "value": 5.6,
+                "simulated": false
+            },
+            {
+                "id": "ebfd1a44-e332-4ab7-87de97e73590",
+                "key": "water_percent",
+                "value": 49.8,
+                "simulated": false
+            },
+            {
+                "id": "ad8ddc70-7da8-4697-8494d93459b3",
+                "key": "discomfort",
+                "value": 4,
+                "simulated": false
+            },
+            {
+                "id": "d2fd9128-c626-4cfd-8b929a87210c",
+                "key": "notes",
+                "value": "Day one \u2014 starting again",
+                "simulated": false
+            }
+        ]
     }
 ]
