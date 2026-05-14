@@ -1899,5 +1899,52 @@
                 "simulated": false
             }
         ]
+    },
+    {
+        "timestamp": "2026-05-14T18:07:45.097Z",
+        "entries": [
+            {
+                "id": "f7c3ca77-a4ee-478a-979a266edb62",
+                "key": "ketones",
+                "value": 0.2,
+                "simulated": false
+            },
+            {
+                "id": "3195261d-0063-491c-9a85addbb93f",
+                "key": "glucose",
+                "value": 134,
+                "simulated": false
+            },
+            {
+                "id": "babbe09e-9019-4e96-90944b3c3a14",
+                "key": "body_weight",
+                "value": 228.3,
+                "simulated": false
+            },
+            {
+                "id": "0591145c-f4a8-499e-afb008341997",
+                "key": "total_fat",
+                "value": 28.6,
+                "simulated": false
+            },
+            {
+                "id": "94e33308-6313-4cb2-85713b2b6fe8",
+                "key": "visceral_fat",
+                "value": 5.6,
+                "simulated": false
+            },
+            {
+                "id": "501e40a5-f0fa-4097-bcb131396581",
+                "key": "water_percent",
+                "value": 49.8,
+                "simulated": false
+            },
+            {
+                "id": "3dbe21e3-d715-4d85-b01cf6ad521e",
+                "key": "discomfort",
+                "value": 4,
+                "simulated": false
+            }
+        ]
     }
 ]
